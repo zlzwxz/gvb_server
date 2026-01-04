@@ -1,0 +1,17 @@
+mysql:
+  host: localhost
+  port: 3306
+  user: root
+  password: root
+  db: gvb_db
+  log_level: dev
+system:
+    host: "0.0.0.0"
+    port: 8080
+    env: dev
+logger:
+  level: info
+  prefix: '[gvb]'
+  director: log
+  show_line: true
+  log_in_console: true
