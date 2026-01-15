@@ -1,21 +1,35 @@
 package main
 
 import (
-  "fmt"
+	"gvb-server/core"
+	"gvb-server/flag"
+	"gvb-server/global"
+	"gvb-server/routers"
 )
 
 //TIP <p>To run your code, right-click the code and select <b>Run</b>.</p> <p>Alternatively, click
 // the <icon src="AllIcons.Actions.Execute"/> icon in the gutter and select the <b>Run</b> menu item from here.</p>
 
 func main() {
-  //TIP <p>Press <shortcut actionId="ShowIntentionActions"/> when your caret is at the underlined text
-  // to see how GoLand suggests fixing the warning.</p><p>Alternatively, if available, click the lightbulb to view possible fixes.</p>
-  s := "gopher"
-  fmt.Printf("Hello and welcome, %s!\n", s)
-
-  for i := 1; i <= 5; i++ {
-	//TIP <p>To start your debugging session, right-click your code in the editor and select the Debug option.</p> <p>We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-	// for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.</p>
-	fmt.Println("i =", 100/i)
-  }
+	//初始化配置文件，读取里面的配置
+	core.InitConf()
+	//连接数据库之前初始化日志输出
+	global.Log = core.InitLogger()
+	//初始化数据库连接
+	global.DB = core.InitGorm()
+	//绑定参数，创建表结构
+	//go run main.go -db
+	option := flag.Parse()
+	if flag.IsWebStop(option) {
+		flag.SwitchOption(option)
+		return
+	}
+	//启动路由
+	router := routers.InitRouter()
+	addr := global.Config.System.Addr()
+	global.Log.Infof("启动服务成功，端口：%s", addr)
+	err := router.Run(addr)
+	if err != nil {
+		global.Log.Fatalf(err.Error())
+	}
 }

@@ -2,16 +2,65 @@ mysql:
   host: localhost
   port: 3306
   user: root
-  password: root
+  password: zhangliang
   db: gvb_db
   log_level: dev
-system:
-    host: "0.0.0.0"
-    port: 8080
-    env: dev
+  config: "charset=utf8mb4&parseTime=True&loc=Local"
+  maxidleconns: 0
+  maxopenconns: 0
+  timeout: 5
 logger:
   level: info
   prefix: '[gvb]'
   director: log
   show_line: true
   log_in_console: true
+system:
+  host: 0.0.0.0
+  port: 8080
+  env: release
+upload:
+  path: uploads/file
+  max_size: 10
+email:
+  host: smtp.qq.com
+  port: 465
+  user: xxx@qq.com
+  password: xxx
+  default_from_email: bu知道
+  use_ssl: true
+  user_tls: true
+jwt:
+  secret: ""
+  expires: 0
+  issuer: ""
+site_info:
+  created_at: "2023-01-01"
+  bei_an: 湘IcP备2021010654号-1
+  title: 美玲的个人博客
+  qq_image: qq_image:http://www.fengfengzhidao.com/static/my/img/footer/qq.png
+  version: 6.0.2
+  email: 2663456523@qq.com
+  wechat_image: wechat_image:http://www.fengfengzhidao.com/static/my/img/footer/wechat.png
+  name: 枫机知道
+  job: 后端开发
+  addr: 湖南长沙
+  slogan: 美玲博雾
+  slogan_en: MEILINGBLOG
+  web: /www.fengfengzhidao.com/
+  bilibili_url: https://space.bilibili.com/359151217
+  gitee_url: https://qitee.com/fengfengzhidao
+  github_url: https://qithub.com/fengfengzhidao/
+qq:
+  app_id: app_id
+  key: key
+  redirect: redirect
+qiniu:
+  enable: false
+  access_key: access_key
+  secret_key: secret_key
+  bucket: bucket
+  cdn: cdn
+  zone: zone
+  prefix: prefix
+  size: 5
