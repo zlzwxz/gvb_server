@@ -16,7 +16,15 @@ type FileUploadResponse struct {
 	Msg       string `json:"msg"`        // 消息
 }
 
-// ImageUploadView 上传单个图片，返回图片的url
+// ImageUploadView 上传图片（支持单个或多个）
+// @Tags 图片管理
+// @Summary 批量上传图片
+// @Description 上传单个或多个图片文件，返回图片的URL信息
+// @Accept multipart/form-data
+// @Produce json
+// @Param images[] formData file true "图片文件(可多选)"
+// @Success 200 {object} res.Response{data=[]image_ser.FileUploadResponse}
+// @Router /api/images [post]
 func (ImagesApi) ImageUploadView(c *gin.Context) {
 	// 上传多个图片
 	form, err := c.MultipartForm()
@@ -24,7 +32,7 @@ func (ImagesApi) ImageUploadView(c *gin.Context) {
 		res.FailWithMessage(err.Error(), c)
 		return
 	}
-	fileList, ok := form.File["images"]
+	fileList, ok := form.File["images[]"]
 	if !ok {
 		res.FailWithMessage("不存在的文件", c)
 		return
@@ -47,7 +55,7 @@ func (ImagesApi) ImageUploadView(c *gin.Context) {
 	for _, file := range fileList {
 
 		// 上传文件
-		
+
 		serviceRes := service.ServiceApp.ImageService.ImageUploadService(file)
 		if !serviceRes.IsSuccess {
 			resList = append(resList, serviceRes)

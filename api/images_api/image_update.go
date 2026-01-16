@@ -12,6 +12,15 @@ type ImageUpdateRequest struct {
 	Name string `json:"name" binding:"required" msg:"请输入文件名称"`
 }
 
+// ImageUpdateView 更新图片信息
+// @Tags 图片管理
+// @Summary 更新图片名称
+// @Description 根据图片ID更新图片名称
+// @Accept json
+// @Produce json
+// @Param data body ImageUpdateRequest true "图片更新请求数据"
+// @Success 200 {object} res.Response{message=string}
+// @Router /api/images [put]
 func (ImagesApi) ImageUpdateView(c *gin.Context) {
 	var cr ImageUpdateRequest
 	err := c.ShouldBindJSON(&cr)

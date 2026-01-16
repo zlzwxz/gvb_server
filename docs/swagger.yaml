@@ -1,0 +1,421 @@
+basePath: /
+definitions:
+  advert_api.AdvertRequest:
+    properties:
+      href:
+        description: 跳转链接
+        type: string
+      images:
+        description: 图片
+        type: string
+      is_show:
+        description: 是否展示
+        type: boolean
+      title:
+        description: 显示的标题
+        type: string
+    required:
+    - href
+    - images
+    - is_show
+    - title
+    type: object
+  ctype.ImageType:
+    enum:
+    - 1
+    - 2
+    type: integer
+    x-enum-comments:
+      Local: QQ
+      QiNiu: gitee
+    x-enum-descriptions:
+    - QQ
+    - gitee
+    x-enum-varnames:
+    - Local
+    - QiNiu
+  image_ser.FileUploadResponse:
+    properties:
+      file_name:
+        description: 文件名
+        type: string
+      is_success:
+        description: 是否上传成功
+        type: boolean
+      msg:
+        description: 消息
+        type: string
+    type: object
+  images_api.ImageUpdateRequest:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    required:
+    - id
+    - name
+    type: object
+  models.AdvertModel:
+    properties:
+      created_at:
+        description: 创建时间
+        type: string
+      href:
+        description: 跳转链接
+        type: string
+      id:
+        description: 主键ID
+        type: integer
+      images:
+        description: 图片
+        type: string
+      is_show:
+        description: 是否展示
+        type: boolean
+      title:
+        description: 显示的标题
+        type: string
+    type: object
+  models.BannerModel:
+    properties:
+      created_at:
+        description: 创建时间
+        type: string
+      hash:
+        description: 图片的hash值，用于判断重复图片
+        type: string
+      id:
+        description: 主键ID
+        type: integer
+      image_type:
+        allOf:
+        - $ref: '#/definitions/ctype.ImageType'
+        description: 图片的类型， 本地还是七牛
+      name:
+        description: 图片名称
+        type: string
+      path:
+        description: 图片路径
+        type: string
+    type: object
+  models.RemoveRequest:
+    properties:
+      id_list:
+        items:
+          type: integer
+        type: array
+    type: object
+  res.ListResponse-models_AdvertModel:
+    properties:
+      count:
+        type: integer
+      list:
+        $ref: '#/definitions/models.AdvertModel'
+    type: object
+  res.ListResponse-models_BannerModel:
+    properties:
+      count:
+        type: integer
+      list:
+        $ref: '#/definitions/models.BannerModel'
+    type: object
+  res.Response:
+    properties:
+      code:
+        type: integer
+      data: {}
+      msg:
+        type: string
+    type: object
+host: 127.0.0.01:8080
+info:
+  contact: {}
+  description: gvb_server API文档
+  title: gvb_server API文档
+  version: "1.0"
+paths:
+  /api/adverts:
+    delete:
+      description: 批量删除广告
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 广告id列表
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.RemoveRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 批量删除广告
+      tags:
+      - 广告管理
+    get:
+      description: 广告列表
+      parameters:
+      - in: query
+        name: key
+        type: string
+      - in: query
+        name: limit
+        type: integer
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: sort
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/res.ListResponse-models_AdvertModel'
+              type: object
+      summary: 广告列表
+      tags:
+      - 广告管理
+    post:
+      description: 创建广告
+      parameters:
+      - description: 表示多个参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/advert_api.AdvertRequest'
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 创建广告
+      tags:
+      - 广告管理
+  /api/adverts/{id}:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 广告ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 广告更新数据
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/advert_api.AdvertRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                message:
+                  type: string
+              type: object
+      summary: 更新广告
+      tags:
+      - 广告管理
+  /api/images:
+    delete:
+      consumes:
+      - application/json
+      description: 根据ID列表删除对应的图片
+      parameters:
+      - description: 删除请求数据
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.RemoveRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 删除图片
+      tags:
+      - 图片管理
+    get:
+      consumes:
+      - application/json
+      description: 获取分页的图片列表数据
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: 每页数量
+        in: query
+        name: limit
+        type: integer
+      - description: 排序方式
+        in: query
+        name: sort
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/res.ListResponse-models_BannerModel'
+              type: object
+      summary: 获取图片列表
+      tags:
+      - 图片管理
+    post:
+      consumes:
+      - multipart/form-data
+      description: 上传单个或多个图片文件，返回图片的URL信息
+      parameters:
+      - description: 图片文件(可多选)
+        in: formData
+        name: images[]
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/image_ser.FileUploadResponse'
+                  type: array
+              type: object
+      summary: 批量上传图片
+      tags:
+      - 图片管理
+    put:
+      consumes:
+      - application/json
+      description: 根据图片ID更新图片名称
+      parameters:
+      - description: 图片更新请求数据
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/images_api.ImageUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                message:
+                  type: string
+              type: object
+      summary: 更新图片名称
+      tags:
+      - 图片管理
+  /api/settings/{name}:
+    get:
+      consumes:
+      - application/json
+      description: 根据配置名称获取对应的配置信息
+      parameters:
+      - description: 配置名称
+        enum:
+        - site
+        - email
+        - qq
+        - qiniu
+        - jwt
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data: {}
+              type: object
+      summary: 获取配置信息
+      tags:
+      - 配置管理
+    put:
+      consumes:
+      - application/json
+      description: '根据配置名称更新对应的配置信息。site: {title,subtitle,keywords...}; email: {smtp_host,smtp_port...};
+        qq: {app_id,app_key...}; qiniu: {access_key,secret_key...}; jwt: {sign_key,expires_time...}'
+      parameters:
+      - description: 配置名称
+        enum:
+        - site
+        - email
+        - qq
+        - qiniu
+        - jwt
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: 配置数据
+        in: body
+        name: data
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 更新配置信息
+      tags:
+      - 配置管理
+swagger: "2.0"

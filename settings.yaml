@@ -5,7 +5,7 @@ mysql:
   password: zhangliang
   db: gvb_db
   log_level: dev
-  config: "charset=utf8mb4&parseTime=True&loc=Local"
+  config: charset=utf8mb4&parseTime=True&loc=Local
   maxidleconns: 0
   maxopenconns: 0
   timeout: 5
@@ -19,9 +19,6 @@ system:
   host: 0.0.0.0
   port: 8080
   env: release
-upload:
-  path: uploads/file
-  max_size: 10
 email:
   host: smtp.qq.com
   port: 465
@@ -57,10 +54,13 @@ qq:
   redirect: redirect
 qiniu:
   enable: false
-  access_key: access_key
-  secret_key: secret_key
-  bucket: bucket
-  cdn: cdn
-  zone: zone
-  prefix: prefix
-  size: 5
+  access_key: "111"
+  secret_key: "222222"
+  bucket: "111111"
+  cdn: "111"
+  zone: "222"
+  prefix: "333"
+  size: 0
+upload:
+  path: uploads/file
+  max_size: 10

@@ -2,14 +2,17 @@ package main
 
 import (
 	"gvb-server/core"
+	_ "gvb-server/docs" // swag init生成后的docs路径
 	"gvb-server/flag"
 	"gvb-server/global"
 	"gvb-server/routers"
 )
 
-//TIP <p>To run your code, right-click the code and select <b>Run</b>.</p> <p>Alternatively, click
-// the <icon src="AllIcons.Actions.Execute"/> icon in the gutter and select the <b>Run</b> menu item from here.</p>
-
+// @title gvb_server API文档
+// @version 1.0
+// @description gvb_server API文档
+// @host 127.0.0.01:8080
+// @BasePath /
 func main() {
 	//初始化配置文件，读取里面的配置
 	core.InitConf()

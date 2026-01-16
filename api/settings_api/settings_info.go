@@ -11,6 +11,15 @@ type SettingsUri struct {
 }
 
 // SettingsInfoView 显示某一项的配置信息
+// @Tags 配置管理
+// @Summary 获取配置信息
+// @Description 根据配置名称获取对应的配置信息
+// @Accept json
+// @Produce json
+// @Param name path string true "配置名称" Enums(site, email, qq, qiniu, jwt)
+// @Success 200 {object} res.Response{data=interface{}}
+// @Router /api/settings/{name} [get]
+// SettingsInfoView 显示某一项的配置信息
 func (SettingsApi) SettingsInfoView(c *gin.Context) {
 
 	var cr SettingsUri
