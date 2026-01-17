@@ -1,10 +1,11 @@
 package routers
 
 import (
+	"gvb-server/global"
+
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	gs "github.com/swaggo/gin-swagger" //swagger包
-	"gvb-server/global"
 )
 
 type RouterGroup struct {
@@ -25,5 +26,6 @@ func InitRouter() *gin.Engine {
 	routerGroupApp.SettinsRouter()
 	routerGroupApp.ImageRouter()
 	routerGroupApp.AdvertRouter()
+	routerGroupApp.MenuRouter()
 	return router
 }
