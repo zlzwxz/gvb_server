@@ -2,17 +2,18 @@ package user_api
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"gvb-server/global"
 	"gvb-server/models"
 	"gvb-server/models/res"
 	"gvb-server/utils/jwts"
 	"gvb-server/utils/pwd"
+
+	"github.com/gin-gonic/gin"
 )
 
 type UpdatePasswordRequest struct {
-	OldPwd string `json:"old_pwd"` // 旧密码
-	Pwd    string `json:"pwd"`     // 新密码
+	OldPwd string `json:"old_pwd" binding:"required" msg:"请输入旧密码"` // 旧密码
+	Pwd    string `json:"pwd"binding:"required" msg:"请输入新密码"`      // 新密码
 }
 
 // UserUpdatePassword 修改登录人的id
