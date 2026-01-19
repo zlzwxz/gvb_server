@@ -21,7 +21,8 @@ func main() {
 	//初始化数据库连接
 	global.DB = core.InitGorm()
 	//绑定参数，创建表结构
-	//go run main.go -db
+	//go run 111.go -db 创建数据库结构
+	//go run 111.go -user user 创建用户 admin为管理员 user为普通用户
 	option := flag.Parse()
 	if flag.IsWebStop(option) {
 		flag.SwitchOption(option)

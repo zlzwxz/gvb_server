@@ -6,7 +6,7 @@ import (
 	"gvb-server/models"
 	"gvb-server/models/ctype"
 	"gvb-server/plugins/qiniu"
-	"gvb-server/util"
+	"gvb-server/utils"
 	"io"
 	"mime/multipart"
 	"path"
@@ -40,7 +40,7 @@ func (ImageService) ImageUploadService(file *multipart.FileHeader) (res FileUplo
 	// 文件白名单判断
 	nameList := strings.Split(fileName, ".")
 	suffix := strings.ToLower(nameList[len(nameList)-1])
-	if !util.InList(suffix, WhiteImageList) {
+	if !utils.InList(suffix, WhiteImageList) {
 		res.Msg = "非法文件"
 		return
 	}
@@ -57,7 +57,7 @@ func (ImageService) ImageUploadService(file *multipart.FileHeader) (res FileUplo
 		global.Log.Error(err)
 	}
 	byteData, err := io.ReadAll(fileObj)
-	imageHash := util.Md5(byteData)
+	imageHash := utils.Md5(byteData)
 	// 去数据库中查这个图片是否存在
 	var bannerModel models.BannerModel
 	err = global.DB.Take(&bannerModel, "hash = ?", imageHash).Error
