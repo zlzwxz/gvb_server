@@ -1,6 +1,7 @@
 package global
 
 import (
+	"github.com/go-redis/redis"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -27,4 +28,6 @@ var (
 	QiNiu *config.QiNiu
 	//mysql日志全局变量
 	MysqlLog logger.Interface
+	//redis初始话
+	Redis *redis.Client
 )

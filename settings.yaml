@@ -64,3 +64,8 @@ qiniu:
 upload:
   path: uploads/file
   max_size: 10
+redis:
+  ip: 127.0.0.1
+  port: 6379
+  password: ""
+  poolSize: 100
