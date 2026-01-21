@@ -5,6 +5,7 @@ import (
 	"gvb-server/api/images_api"
 	"gvb-server/api/menu_api"
 	"gvb-server/api/settings_api"
+	"gvb-server/api/tag_api"
 	"gvb-server/api/user_api"
 )
 
@@ -14,6 +15,7 @@ type ApiGroup struct {
 	AdvertApi   advert_api.AdvertApi
 	MenuApi     menu_api.MenuApi
 	UserApi     user_api.UserApi
+	TagApi      tag_api.TagApi
 }
 
 // 实例化对象

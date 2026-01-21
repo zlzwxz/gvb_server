@@ -49,9 +49,9 @@ site_info:
   gitee_url: https://qitee.com/fengfengzhidao
   github_url: https://qithub.com/fengfengzhidao/
 qq:
-  app_id: app_id
+  app_id: 102823569
   key: key
-  redirect: redirect
+  redirect: ay71g6HDvOekfNRM
 qiniu:
   enable: false
   access_key: "111"
