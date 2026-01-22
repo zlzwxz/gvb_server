@@ -1,10 +1,11 @@
 package tag_api
 
 import (
-	"github.com/gin-gonic/gin"
 	"gvb-server/global"
 	"gvb-server/models"
 	"gvb-server/models/res"
+
+	"github.com/gin-gonic/gin"
 )
 
 type TagRequest struct {
@@ -19,14 +20,14 @@ func (TagApi) TagCreateView(c *gin.Context) {
 		return
 	}
 	// 重复的判断
-	var advert models.TagModel
-	err = global.DB.Take(&advert, "title = ?", cr.Title).Error
+	var tag models.TagModel
+	err = global.DB.Take(&tag, "title = ?", cr.Title).Error
 	if err == nil {
 		res.FailWithMessage("该标签已存在", c)
 		return
 	}
 
-	err = global.DB.Create(&models.AdvertModel{
+	err = global.DB.Create(&models.TagModel{
 		Title: cr.Title,
 	}).Error
 

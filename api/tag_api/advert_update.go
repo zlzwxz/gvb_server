@@ -1,11 +1,12 @@
 package tag_api
 
 import (
-	"github.com/fatih/structs"
-	"github.com/gin-gonic/gin"
 	"gvb-server/global"
 	"gvb-server/models"
 	"gvb-server/models/res"
+
+	"github.com/fatih/structs"
+	"github.com/gin-gonic/gin"
 )
 
 func (TagApi) TagUpdateView(c *gin.Context) {
@@ -35,5 +36,5 @@ func (TagApi) TagUpdateView(c *gin.Context) {
 		return
 	}
 
-	res.OkWithMessage("修改广告成功", c)
+	res.OkWithMessage("修改标签成功", c)
 }
