@@ -2,12 +2,12 @@ package core
 
 import (
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"gvb-server/config"
 	"gvb-server/global"
 	"io/fs"
 	"io/ioutil"
-	"log"
+
+	"gopkg.in/yaml.v2"
 )
 
 // 文件路径
@@ -27,7 +27,6 @@ func InitConf() {
 	if err != nil {
 		panic(fmt.Errorf("yaml unmarshal error : %s", err))
 	}
-	log.Println("configYaml load init success")
 	//赋值给全局变量global.Config
 	global.Config = c
 }

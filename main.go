@@ -22,6 +22,8 @@ func main() {
 	global.DB = core.InitGorm()
 	//连接redis
 	global.Redis = core.ConnectRedis()
+	//连接es索引
+	global.ESClient, _ = core.EsConnect()
 	//绑定参数，创建表结构
 	//go run 111.go -db 创建数据库结构
 	//go run 111.go -user user 创建用户 admin为管理员 user为普通用户

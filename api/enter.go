@@ -2,6 +2,8 @@ package api
 
 import (
 	"gvb-server/api/advert_api"
+	"gvb-server/api/article_api"
+	"gvb-server/api/digg_api"
 	"gvb-server/api/images_api"
 	"gvb-server/api/menu_api"
 	"gvb-server/api/message_api"
@@ -18,6 +20,8 @@ type ApiGroup struct {
 	UserApi     user_api.UserApi
 	TagApi      tag_api.TagApi
 	MessageApi  message_api.MessageApi
+	ArticleApi  article_api.ArticleApi
+	DiggApi     digg_api.DiggApi
 }
 
 // 实例化对象

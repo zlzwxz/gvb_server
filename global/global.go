@@ -1,11 +1,13 @@
 package global
 
 import (
+	"gvb-server/config"
+
 	"github.com/go-redis/redis"
+	"github.com/olivere/elastic/v7"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"gvb-server/config"
 )
 
 // 存放公共全局变量
@@ -30,4 +32,6 @@ var (
 	MysqlLog logger.Interface
 	//redis初始话
 	Redis *redis.Client
+	//es全局变量
+	ESClient *elastic.Client
 )
