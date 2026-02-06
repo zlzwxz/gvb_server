@@ -6,6 +6,7 @@ import (
 	"gvb-server/global"
 	"gvb-server/models"
 	"gvb-server/models/res"
+	"gvb-server/service/es_ser"
 
 	"github.com/gin-gonic/gin"
 	"github.com/olivere/elastic/v7"
@@ -27,6 +28,8 @@ func (ArticleApi) ArticleRemoveView(c *gin.Context) {
 	bulkService := global.ESClient.Bulk().Index(models.ArticleModel{}.Index()).Refresh("true")
 	for _, id := range cr.IDList {
 		req := elastic.NewBulkDeleteRequest().Id(id)
+		//同步删除全文搜索索引数据
+		go es_ser.DeleteFullTextByArticleID(id)
 		bulkService.Add(req)
 	}
 	result, err := bulkService.Do(context.Background())

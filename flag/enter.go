@@ -5,7 +5,7 @@ import sys_flag "flag"
 type Option struct {
 	DB   bool
 	User string //-user admin 创建管理员用户 -user user 创建普通用户
-	ES   string //-es article 创建文章索引
+	ES   string //-es create  创建文章索引 创建文章全文搜索索引
 }
 
 // Parse 解析命令行参数

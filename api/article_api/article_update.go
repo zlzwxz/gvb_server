@@ -1,7 +1,7 @@
 package article_api
 
 import (
-	"context"
+	"fmt"
 	"gvb-server/global"
 	"gvb-server/models"
 	"gvb-server/models/ctype"
@@ -11,7 +11,6 @@ import (
 
 	"github.com/fatih/structs"
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 type ArticleUpdateRequest struct {
@@ -58,13 +57,6 @@ func (ArticleApi) ArticleUpdateView(c *gin.Context) {
 		Tags:      cr.Tags,
 	}
 
-	//判断该文章是否存在根据id
-	err = article.DataGetByID(cr.ID)
-	if err != nil {
-		res.FailWithMessage("文章不存在", c)
-		return
-	}
-
 	maps := structs.Map(&article)
 	var DataMap = map[string]any{}
 	// 去掉空值
@@ -93,24 +85,33 @@ func (ArticleApi) ArticleUpdateView(c *gin.Context) {
 		}
 		DataMap[key] = v
 	}
-
-	_, err = global.ESClient.
-		Update().
-		Index(models.ArticleModel{}.Index()).
-		Id(cr.ID).
-		Doc(DataMap).
-		Do(context.Background())
+	//判断该文章是否存在根据id
+	err = article.DataGetByID(cr.ID)
 	if err != nil {
-		logrus.Error(err.Error())
-		res.FailWithMessage("更新失败", c)
+		res.FailWithMessage("文章不存在", c)
 		return
 	}
 
-	err = es_ser.ArticleUpdate(cr.ID, maps)
+	err = es_ser.ArticleUpdate(cr.ID, DataMap)
 	if err != nil {
 		res.FailWithMessage("更新失败", c)
 		return
 	}
 
+	//文章更新后再去更新全文搜索索引数据
+	newArticle, _ := es_ser.CommDetail(cr.ID)
+
+	if newArticle.Content != article.Content || newArticle.Title != article.Title {
+		//先删除全文文章搜索索引数据
+		es_ser.DeleteFullTextByArticleID(cr.ID)
+		//更新全文搜索索引数据
+		es_ser.AsyncArticleByFullText(es_ser.SearchData{
+			Key:   cr.ID,
+			Body:  newArticle.Content,
+			Slug:  es_ser.GetSlug(article.Title),
+			Title: article.Title,
+		})
+	}
+	fmt.Println(newArticle.Content, "-----", article.Content)
 	res.OkWithMessage("更新成功", c)
 }

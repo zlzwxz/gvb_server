@@ -5,6 +5,7 @@ import (
 	"gvb-server/models"
 	"gvb-server/models/ctype"
 	"gvb-server/models/res"
+	"gvb-server/service/es_ser"
 	"gvb-server/utils/jwts"
 	"math/rand"
 	"strings"
@@ -125,6 +126,13 @@ func (ArticleApi) ArticleCreateView(c *gin.Context) {
 		res.FailWithMessage(err.Error(), c)
 		return
 	}
+	// 全文搜索索引创建
+	es_ser.AsyncArticleByFullText(es_ser.SearchData{
+		Key:   article.ID,
+		Body:  article.Content,
+		Slug:  es_ser.GetSlug(article.Title),
+		Title: article.Title,
+	})
 	res.OkWithMessage("文章发布成功", c)
 
 }

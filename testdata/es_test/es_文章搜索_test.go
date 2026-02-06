@@ -12,7 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func TestCommList(t *testing.T) {
+func TestCommArticleList(t *testing.T) {
 	// 读取配置文件
 	core.InitConf()
 	// 初始化日志
