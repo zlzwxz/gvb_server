@@ -27,14 +27,12 @@ func (ArticleApi) ArticleListView(c *gin.Context) {
 		res.OkWithMessage("查询失败", c)
 		return
 	}
-
 	data := filter.Omit("list", list)
 	if data == nil {
 		list = make([]models.ArticleModel, 0)
 		res.OkWithList(list, int64(count), c)
 		return
 	}
-
 	// 安全地进行类型断言
 	_list, ok := data.(map[string]interface{})
 	if !ok {
@@ -42,7 +40,6 @@ func (ArticleApi) ArticleListView(c *gin.Context) {
 		res.OkWithList(filter.Omit("list", list), int64(count), c)
 		return
 	}
-
 	// 检查 map 是否为空
 	if len(_list) == 0 {
 		list = make([]models.ArticleModel, 0)

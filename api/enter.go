@@ -3,6 +3,7 @@ package api
 import (
 	"gvb-server/api/advert_api"
 	"gvb-server/api/article_api"
+	"gvb-server/api/comment_api"
 	"gvb-server/api/digg_api"
 	"gvb-server/api/images_api"
 	"gvb-server/api/menu_api"
@@ -22,6 +23,7 @@ type ApiGroup struct {
 	MessageApi  message_api.MessageApi
 	ArticleApi  article_api.ArticleApi
 	DiggApi     digg_api.DiggApi
+	CommentApi  comment_api.CommentApi
 }
 
 // 实例化对象

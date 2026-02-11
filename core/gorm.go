@@ -29,6 +29,8 @@ func InitGorm() *gorm.DB {
 	})
 	if err != nil {
 		global.Log.Fatalf(fmt.Sprintf("[%s] mysql连接失败", dsn))
+	} else {
+		global.Log.Infof("[%s] mysql连接成功", dsn)
 	}
 	sqlDB, _ := db.DB()
 	//不写固定值，直接从配置文件里面获取

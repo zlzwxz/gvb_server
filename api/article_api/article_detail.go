@@ -25,7 +25,7 @@ func (ArticleApi) ArticleDetailView(c *gin.Context) {
 		return
 	}
 	//用户浏览的时候加上浏览量
-	redis_ser.Look(cr.ID)
+	redis_ser.NewArticleLook().Set(cr.ID)
 	res.OkWithData(model, c)
 }
 

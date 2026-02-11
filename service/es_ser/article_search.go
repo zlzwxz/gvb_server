@@ -22,13 +22,11 @@ func CommList(option Option) (list []models.ArticleModel, count int, err error) 
 			elastic.NewMultiMatchQuery(option.Key, option.Fields...),
 		)
 	}
-
 	if option.Tag != "" {
 		boolSearch.Must(
 			elastic.NewMultiMatchQuery(option.Tag, "tags"),
 		)
 	}
-
 	type SortField struct {
 		Field     string
 		Ascending bool
@@ -50,9 +48,9 @@ func CommList(option Option) (list []models.ArticleModel, count int, err error) 
 		}
 	}
 	//redis查询是否有点赞数量
-	diggInfo := redis_ser.GetDiggInfo()
+	diggInfo := redis_ser.NewDigg().GetInfo()
 	//redis查看浏览量
-	lookInfo := redis_ser.GetLookInfo()
+	lookInfo := redis_ser.NewArticleLook().GetInfo()
 	res, err := global.ESClient.
 		Search(models.ArticleModel{}.Index()).
 		Query(boolSearch).
@@ -111,7 +109,7 @@ func CommDetail(id string) (model models.ArticleModel, err error) {
 	}
 	model.ID = res.Id
 	//文章详情需要添加浏览量
-	model.LookCount += redis_ser.GetLook(res.Id)
+	model.LookCount += redis_ser.NewArticleLook().Get(res.Id)
 	return
 }
 

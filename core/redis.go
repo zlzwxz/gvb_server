@@ -2,7 +2,6 @@ package core
 
 import (
 	"context"
-	"fmt"
 	"github.com/go-redis/redis"
 	"github.com/sirupsen/logrus"
 	"gvb-server/global"
@@ -22,13 +21,14 @@ func ConnectRedisDB(db int) *redis.Client {
 		DB:       db,
 		PoolSize: redisConf.PoolSize,
 	})
-	fmt.Println(redisConf.Ip, redisConf.Password, redisConf.PoolSize, db)
 	_, concel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer concel()
 	_, err := reb.Ping().Result()
 	if err != nil {
 		logrus.Errorf("连接redis失败，检查redis配置 %s", err)
 		return nil
+	} else {
+		logrus.Info("连接redis成功", redisConf)
 	}
 	return reb
 }

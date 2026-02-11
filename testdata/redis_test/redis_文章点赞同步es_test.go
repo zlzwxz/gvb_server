@@ -31,8 +31,8 @@ func TestRedisDiggTest(t *testing.T) {
 		return
 	}
 
-	diggInfo := redis_ser.GetDiggInfo()
-	lookInfo := redis_ser.GetLookInfo()
+	diggInfo := redis_ser.NewDigg().GetInfo()
+	lookInfo := redis_ser.NewArticleLook().GetInfo()
 	for _, hit := range result.Hits.Hits {
 		var article models.ArticleModel
 		err = json.Unmarshal(hit.Source, &article)
@@ -60,6 +60,6 @@ func TestRedisDiggTest(t *testing.T) {
 		}
 		logrus.Info(article.Title, "点赞数和浏览量同步成功， 点赞数", newDigg, "浏览量", newLook)
 	}
-	redis_ser.DiggClear()
-	redis_ser.LookClear()
+	redis_ser.NewDigg().Clear()
+	redis_ser.NewArticleLook().Clear()
 }
