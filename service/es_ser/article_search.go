@@ -51,6 +51,8 @@ func CommList(option Option) (list []models.ArticleModel, count int, err error) 
 	diggInfo := redis_ser.NewDigg().GetInfo()
 	//redis查看浏览量
 	lookInfo := redis_ser.NewArticleLook().GetInfo()
+	//redis查看评论数
+	commentInfo := redis_ser.NewCommentCount().GetInfo()
 	res, err := global.ESClient.
 		Search(models.ArticleModel{}.Index()).
 		Query(boolSearch).
@@ -87,6 +89,8 @@ func CommList(option Option) (list []models.ArticleModel, count int, err error) 
 		//添加浏览量
 		lookCount := lookInfo[hit.Id]
 		model.LookCount += lookCount
+		//添加评论数
+		model.CommentCount += commentInfo[hit.Id]
 		global.Log.Info("点赞数", model.DiggCount, "浏览量", model.LookCount)
 
 		demoList = append(demoList, model)

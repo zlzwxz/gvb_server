@@ -1,13 +1,8 @@
 package redis_ser
 
-import (
-	"gvb-server/global"
-	"strconv"
-)
-
 const diggPrefix = "digg"
 
-// Digg 点赞某一篇文章
+/*// Digg 点赞某一篇文章
 func Digg(id string) error {
 	num, _ := global.Redis.HGet(diggPrefix, id).Int()
 	num++
@@ -35,4 +30,4 @@ func GetDiggInfo() map[string]int {
 // DiggClear 清空点赞数据
 func DiggClear() {
 	global.Redis.Del(diggPrefix)
-}
+}*/

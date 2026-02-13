@@ -1,13 +1,8 @@
 package redis_ser
 
-import (
-	"gvb-server/global"
-	"strconv"
-)
-
 const lookPrefix = "look"
 
-// Look 浏览某一篇文章
+/*// Look 浏览某一篇文章
 func Look(id string) error {
 	num, _ := global.Redis.HGet(lookPrefix, id).Int()
 	num++
@@ -35,3 +30,4 @@ func GetLookInfo() map[string]int {
 func LookClear() {
 	global.Redis.Del(lookPrefix)
 }
+*/
