@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/sirupsen/logrus"
 	"gvb-server/global"
 )
 
@@ -14,7 +15,7 @@ func ParseToken(tokenStr string) (*CustomClaims, error) {
 		return MySecret, nil
 	})
 	if err != nil {
-		global.Log.Error(fmt.Sprintf("token parse err: %s", err.Error()))
+		logrus.Error(fmt.Sprintf("token 错误 parse err: %s", err.Error()))
 		return nil, err
 	}
 	if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid {

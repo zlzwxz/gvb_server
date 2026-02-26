@@ -5,17 +5,23 @@ import (
 	"gorm.io/gorm"
 	"gvb-server/global"
 	"gvb-server/models"
+	"gvb-server/plugins/log_stash"
+	"reflect"
+	"strings"
 )
 
 type Option struct {
-	models.PageInfo
-	Debug bool
+	models.PageInfo                 // 分页参数
+	Debug           bool            // 是否开启调试模式
+	Likes           []string        // 模糊查询的字段
+	Level           log_stash.Level // 日志的等级
 }
 
 func ComList[T any](model T, option Option) (list []T, count int64, err error) {
-	fmt.Println("option.Limit:", option.Limit, "option.Page:", option.Page)
+	fmt.Println("option.Limit:", option.Limit, "option.Page:", option.Page, "likes:", option.Likes)
 	DB := global.DB
 	if option.Debug {
+		// 开启调试模式
 		DB = global.DB.Session(&gorm.Session{Logger: global.MysqlLog})
 	}
 	if option.Sort == "" {
@@ -34,6 +40,17 @@ func ComList[T any](model T, option Option) (list []T, count int64, err error) {
 
 	// 2. 构建查询链（先计数，再查询列表，保证筛选条件一致）
 	query := DB.Model(&model) // 基于传入的 model 构建查询
+
+	//  添加模糊查询支持
+	if option.Key != "" {
+		// 获取模型的所有字符串字段进行模糊查询
+		query = addFuzzySearch(query, model, option.Key)
+	}
+
+	// 添加level筛选条件
+	if option.Level != 0 {
+		query = query.Where("level = ?", option.Level)
+	}
 
 	// 计数（如果有 WHERE 条件，要先加条件再 Count）
 	if err = query.Count(&count).Error; err != nil {
@@ -56,4 +73,43 @@ func ComList[T any](model T, option Option) (list []T, count int64, err error) {
 	}
 
 	return list, count, err
+}
+
+// addFuzzySearch 添加模糊查询条件
+func addFuzzySearch(query *gorm.DB, model interface{}, keyword string) *gorm.DB {
+	// 使用反射获取模型的字段信息
+	modelType := reflect.TypeOf(model)
+	if modelType.Kind() == reflect.Ptr {
+		modelType = modelType.Elem()
+	}
+
+	// 构建OR查询条件
+	var conditions []string
+	var args []interface{}
+
+	for i := 0; i < modelType.NumField(); i++ {
+		field := modelType.Field(i)
+
+		// 只处理字符串类型的字段
+		if field.Type.Kind() == reflect.String {
+			// 检查是否有json标签
+			jsonTag := field.Tag.Get("json")
+			if jsonTag != "" && jsonTag != "-" {
+				// 提取字段名（处理json标签中的选项）
+				fieldName := strings.Split(jsonTag, ",")[0]
+				if fieldName != "" {
+					conditions = append(conditions, fmt.Sprintf("%s LIKE ?", fieldName))
+					args = append(args, "%"+keyword+"%")
+				}
+			}
+		}
+	}
+
+	// 如果有匹配的字段，添加OR查询
+	if len(conditions) > 0 {
+		whereClause := strings.Join(conditions, " OR ")
+		query = query.Where(whereClause, args...)
+	}
+
+	return query
 }
