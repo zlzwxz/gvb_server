@@ -10,7 +10,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// http://127.0.0.1:8080/api/articles/_WoX6ZsBPMPoP5eKRYpO
+// ArticleDetailView 获取文章详情
+// @Summary 获取文章详情
+// @Description 根据文章ID获取文章详细信息
+// @Tags 文章管理
+// @Accept json
+// @Produce json
+// @Param id path string true "文章ID"
+// @Success 200 {object} res.Response{data=models.ArticleModel} "获取成功"
+// @Failure 400 {object} res.Response "请求错误"
+// @Failure 404 {object} res.Response "文章不存在"
+// @Router /articles/{id} [get]
 func (ArticleApi) ArticleDetailView(c *gin.Context) {
 	var cr models.ESIDRequest
 	err := c.ShouldBindUri(&cr)
@@ -29,10 +39,22 @@ func (ArticleApi) ArticleDetailView(c *gin.Context) {
 	res.OkWithData(model, c)
 }
 
+// ArticleDetailRequest 文章详情请求参数
 type ArticleDetailRequest struct {
-	Title string `json:"title" form:"title"`
+	Title string `json:"title" form:"title" swag:"description:文章标题"`
 }
 
+// ArticleDetailByTitleView 根据标题获取文章详情
+// @Summary 根据标题获取文章详情
+// @Description 根据文章标题关键词获取文章详细信息
+// @Tags 文章管理
+// @Accept json
+// @Produce json
+// @Param title query string true "文章标题"
+// @Success 200 {object} res.Response{data=models.ArticleModel} "获取成功"
+// @Failure 400 {object} res.Response "请求错误"
+// @Failure 404 {object} res.Response "文章不存在"
+// @Router /api/articles/detail [get]
 func (ArticleApi) ArticleDetailByTitleView(c *gin.Context) {
 	var cr ArticleDetailRequest
 	err := c.ShouldBindQuery(&cr)

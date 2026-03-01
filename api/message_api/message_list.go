@@ -9,20 +9,31 @@ import (
 	"time"
 )
 
+// Message 消息响应结构
 type Message struct {
-	SendUserID       uint      `json:"send_user_id"` // 发送人id
-	SendUserNickName string    `json:"send_user_nick_name"`
-	SendUserAvatar   string    `json:"send_user_avatar"`
-	RevUserID        uint      `json:"rev_user_id"` // 接收人id
-	RevUserNickName  string    `json:"rev_user_nick_name"`
-	RevUserAvatar    string    `json:"rev_user_avatar"`
-	Content          string    `json:"content"`       // 消息内容
-	CreatedAt        time.Time `json:"created_at"`    // 最新的消息时间
-	MessageCount     int       `json:"message_count"` // 消息条数
+	SendUserID       uint      `json:"send_user_id" swag:"description:发送人ID"` // 发送人id
+	SendUserNickName string    `json:"send_user_nick_name" swag:"description:发送人昵称"`
+	SendUserAvatar   string    `json:"send_user_avatar" swag:"description:发送人头像"`
+	RevUserID        uint      `json:"rev_user_id" swag:"description:接收人ID"` // 接收人id
+	RevUserNickName  string    `json:"rev_user_nick_name" swag:"description:接收人昵称"`
+	RevUserAvatar    string    `json:"rev_user_avatar" swag:"description:接收人头像"`
+	Content          string    `json:"content" swag:"description:消息内容"`       // 消息内容
+	CreatedAt        time.Time `json:"created_at" swag:"description:最新消息时间"`    // 最新的消息时间
+	MessageCount     int       `json:"message_count" swag:"description:消息条数"` // 消息条数
 }
 
 type MessageGroup map[uint]*Message
 
+// MessageListView 获取消息列表
+// @Summary 获取消息列表
+// @Description 获取当前用户的消息列表，按消息组分组显示
+// @Tags 消息管理
+// @Accept json
+// @Produce json
+// @Param token header string true "token"
+// @Success 200 {object} res.Response{data=[]Message} "获取成功"
+// @Failure 401 {object} res.Response "未授权"
+// @Router /api/messages [get]
 func (MessageApi) MessageListView(c *gin.Context) {
 	_claims, _ := c.Get("claims")
 	claims := _claims.(*jwts.CustomClaims)

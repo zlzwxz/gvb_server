@@ -11,13 +11,26 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// UserUpdateNicknameRequest 修改用户昵称请求参数
 type UserUpdateNicknameRequest struct {
-	NickName string `json:"nick_name" structs:"nick_name"`
-	Sign     string `json:"sign" structs:"sign"`
-	Link     string `json:"link" structs:"link"`
+	NickName string `json:"nick_name" structs:"nick_name" swag:"description:用户昵称"`
+	Sign     string `json:"sign" structs:"sign" swag:"description:用户签名"`
+	Link     string `json:"link" structs:"link" swag:"description:用户链接"`
 }
 
 // UserUpdateNickName 修改当前登录人的昵称，签名，链接
+// @Summary 修改用户信息
+// @Description 修改当前登录用户的昵称、签名、链接
+// @Tags 用户管理
+// @Accept json
+// @Produce json
+// @Param token header string true "token"
+// @Param data body UserUpdateNicknameRequest true "用户信息"
+// @Success 200 {object} res.Response{msg=string} "修改成功"
+// @Failure 400 {object} res.Response "请求错误"
+// @Failure 401 {object} res.Response "未授权"
+// @Failure 404 {object} res.Response "用户不存在"
+// @Router /api/user_update_nick_name [put]
 func (UserApi) UserUpdateNickName(c *gin.Context) {
 	var cr UserUpdateNicknameRequest
 	_claims, _ := c.Get("claims")

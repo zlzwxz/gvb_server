@@ -16,11 +16,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//QQ互联申请qq登录地址
-//https://graph.qq.com/oauth2.0/show?which=Login&display
-//=pc&response_type=code&client_id=102823569&redirect_uri=
-//http://www.zlzwxz.cn/login?flag=qq
-
+// QQLoginView QQ登录
+// @Summary QQ登录
+// @Description 通过QQ授权码进行登录，如果用户不存在则自动注册
+// @Tags 用户管理
+// @Accept json
+// @Produce json
+// @Param code query string true "QQ授权码"
+// @Success 200 {object} res.Response{data=string} "登录成功，返回token"
+// @Failure 400 {object} res.Response "请求错误"
+// @Failure 500 {object} res.Response "登录失败"
+// @Router /api/qq_login [post]
 func (UserApi) QQLoginView(c *gin.Context) {
 	code := c.Query("code")
 	if code == "" {

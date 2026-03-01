@@ -1,19 +1,33 @@
 package message_api
 
 import (
-	"github.com/gin-gonic/gin"
 	"gvb-server/global"
 	"gvb-server/models"
 	"gvb-server/models/res"
+
+	"github.com/gin-gonic/gin"
 )
 
+// MessageRequest 消息创建请求参数
 type MessageRequest struct {
-	SendUserID uint   `json:"send_user_id" binding:"required"` // 发送人id
-	RevUserID  uint   `json:"rev_user_id" binding:"required"`  // 接收人id
-	Content    string `json:"content" binding:"required"`      // 消息内容
+	SendUserID uint   `json:"send_user_id" binding:"required" swag:"description:发送人ID"` // 发送人id
+	RevUserID  uint   `json:"rev_user_id" binding:"required" swag:"description:接收人ID"`  // 接收人id
+	Content    string `json:"content" binding:"required" swag:"description:消息内容"`       // 消息内容
 }
 
 // MessageCreateView 发布消息
+// @Summary 发布消息
+// @Description 发送消息给指定用户
+// @Tags 消息管理
+// @Accept json
+// @Produce json
+// @Param token header string true "token"
+// @Param data body MessageRequest true "消息信息"
+// @Success 200 {object} res.Response{msg=string} "发送成功"
+// @Failure 400 {object} res.Response "请求错误"
+// @Failure 401 {object} res.Response "未授权"
+// @Failure 404 {object} res.Response "发送人或接收人不存在"
+// @Router /api/messages [post]
 func (MessageApi) MessageCreateView(c *gin.Context) {
 	// 当前用户发布消息
 	// SendUserID 就是当前登录人的id

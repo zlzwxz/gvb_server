@@ -2,15 +2,29 @@ package comment_api
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"gvb-server/global"
 	"gvb-server/models"
 	"gvb-server/models/res"
 	"gvb-server/service/redis_ser"
 	"gvb-server/utils"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
+// CommentRemoveView 删除评论
+// @Summary 删除评论
+// @Description 删除指定评论及其子评论
+// @Tags 评论管理
+// @Accept json
+// @Produce json
+// @Param token header string true "token"
+// @Param id path uint true "评论ID"
+// @Success 200 {object} res.Response{msg=string} "删除成功"
+// @Failure 400 {object} res.Response "请求错误"
+// @Failure 401 {object} res.Response "未授权"
+// @Failure 404 {object} res.Response "评论不存在"
+// @Router /api/comments/{id} [delete]
 func (CommentApi) CommentRemoveView(c *gin.Context) {
 	var cr CommentIDRequest
 	err := c.ShouldBindUri(&cr)

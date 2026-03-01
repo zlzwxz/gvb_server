@@ -11,10 +11,21 @@ import (
 	"strconv"
 )
 
+// CommentListRequest 评论列表请求参数
 type CommentListRequest struct {
-	ArticleID string `form:"article_id"`
+	ArticleID string `form:"article_id" swag:"description:文章ID"`
 }
 
+// CommentListView 获取评论列表
+// @Summary 获取评论列表
+// @Description 获取指定文章的评论列表，包括嵌套的子评论
+// @Tags 评论管理
+// @Accept json
+// @Produce json
+// @Param article_id query string true "文章ID"
+// @Success 200 {object} res.Response{data=[]models.CommentModel} "获取成功"
+// @Failure 400 {object} res.Response "请求错误"
+// @Router /api/comments [get]
 func (CommentApi) CommentListView(c *gin.Context) {
 	var cr CommentListRequest
 	err := c.ShouldBindQuery(&cr)

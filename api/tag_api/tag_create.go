@@ -8,10 +8,24 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// TagRequest 标签创建请求参数
 type TagRequest struct {
-	Title string `json:"title" binding:"required" msg:"请输入标签"` // 标签
+	Title string `json:"title" binding:"required" msg:"请输入标签" swag:"description:标签名称"` // 标签
 }
 
+// TagCreateView 创建标签
+// @Summary 创建标签
+// @Description 创建新标签，会检查标签是否已存在
+// @Tags 标签管理
+// @Accept json
+// @Produce json
+// @Param token header string true "token"
+// @Param data body TagRequest true "标签信息"
+// @Success 200 {object} res.Response{msg=string} "创建成功"
+// @Failure 400 {object} res.Response "请求错误"
+// @Failure 401 {object} res.Response "未授权"
+// @Failure 409 {object} res.Response "标签已存在"
+// @Router /api/tags [post]
 func (TagApi) TagCreateView(c *gin.Context) {
 	var cr TagRequest
 	err := c.ShouldBindJSON(&cr)

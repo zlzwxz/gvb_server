@@ -4,14 +4,24 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/olivere/elastic/v7"
 	"gvb-server/global"
 	"gvb-server/models"
 	"gvb-server/models/res"
+
+	"github.com/gin-gonic/gin"
+	"github.com/olivere/elastic/v7"
 )
 
 // FullTextSearchView 全文文章搜索
+// @Summary 全文文章搜索
+// @Description 根据关键词搜索文章标题和正文内容
+// @Tags 文章管理
+// @Accept json
+// @Produce json
+// @Param key query string false "搜索关键词"
+// @Success 200 {object} res.Response{data=object{count=int64,list=[]models.FullTextModel}} "搜索成功"
+// @Failure 400 {object} res.Response "请求错误"
+// @Router /api/articles/search [get]
 func (ArticleApi) FullTextSearchView(c *gin.Context) {
 	var cr models.PageInfo
 	_ = c.ShouldBindQuery(&cr)

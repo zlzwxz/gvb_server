@@ -14,12 +14,26 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// BindEmailRequest 绑定邮箱请求参数
 type BindEmailRequest struct {
-	Email    string  `json:"email" binding:"required,email" msg:"邮箱非法"`
-	Code     *string `json:"code"`
-	Password string  `json:"password"`
+	Email    string  `json:"email" binding:"required,email" msg:"邮箱非法" swag:"description:邮箱地址"`
+	Code     *string `json:"code" swag:"description:验证码，第二次请求时必填"`
+	Password string  `json:"password" swag:"description:新密码，第二次请求时必填"`
 }
 
+// UserBindEmailView 用户绑定邮箱
+// @Summary 用户绑定邮箱
+// @Description 用户绑定邮箱，第一次请求发送验证码，第二次请求验证并绑定
+// @Tags 用户管理
+// @Accept json
+// @Produce json
+// @Param token header string true "token"
+// @Param data body BindEmailRequest true "邮箱信息"
+// @Success 200 {object} res.Response{msg=string} "操作成功"
+// @Failure 400 {object} res.Response "请求错误"
+// @Failure 401 {object} res.Response "未授权"
+// @Failure 404 {object} res.Response "用户不存在"
+// @Router /api/user_bind_email [post]
 func (UserApi) UserBindEmailView(c *gin.Context) {
 	_claims, _ := c.Get("claims")
 	claims := _claims.(*jwts.CustomClaims)

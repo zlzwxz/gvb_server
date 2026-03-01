@@ -9,17 +9,29 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// DateCount 日期计数结构
 type DateCount struct {
-	Date  string `json:"date"`
-	Count int    `json:"count"`
+	Date  string `json:"date" swag:"description:日期"`
+	Count int    `json:"count" swag:"description:数量"`
 }
 
+// DateCountResponse 日期计数响应结构
 type DateCountResponse struct {
-	DateList  []string `json:"date_list"`
-	LoginData []int    `json:"login_data"`
-	SignData  []int    `json:"sign_data"`
+	DateList  []string `json:"date_list" swag:"description:日期列表"`
+	LoginData []int    `json:"login_data" swag:"description:登录数据"`
+	SignData  []int    `json:"sign_data" swag:"description:注册数据"`
 }
 
+// SevenLoginView 获取近七日登录注册数据
+// @Summary 获取近七日登录注册数据
+// @Description 获取近七天内每天的登录和注册人数统计
+// @Tags 数据统计
+// @Accept json
+// @Produce json
+// @Param token header string true "token"
+// @Success 200 {object} res.Response{data=DateCountResponse} "获取成功"
+// @Failure 401 {object} res.Response "未授权"
+// @Router /api/data/seven_login [get]
 func (DataApi) SevenLoginView(c *gin.Context) {
 	var loginDateCount, signDateCount []DateCount
 

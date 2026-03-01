@@ -15,12 +15,25 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// FileUploadResponse 文件上传响应结构
 type FileUploadResponse struct {
-	FileName  string `json:"file_name"`  // 文件名
-	IsSuccess bool   `json:"is_success"` // 是否上传成功
-	Msg       string `json:"msg"`        // 消息
+	FileName  string `json:"file_name" swag:"description:文件名"`
+	IsSuccess bool   `json:"is_success" swag:"description:是否上传成功"`
+	Msg       string `json:"msg" swag:"description:消息"`
 }
 
+// ImageUploadView 上传图片
+// @Summary 上传图片
+// @Description 上传图片文件，支持jpg、png、gif等格式，有大小限制
+// @Tags 图片管理
+// @Accept multipart/form-data
+// @Produce json
+// @Param token header string true "token"
+// @Param image formData file true "图片文件"
+// @Success 200 {object} res.Response{data=string} "上传成功，返回文件路径"
+// @Failure 400 {object} res.Response "请求错误"
+// @Failure 401 {object} res.Response "未授权或游客不可上传"
+// @Router /api/images [post]
 func (ImagesApi) ImageUploadView(c *gin.Context) {
 	file, err := c.FormFile("image")
 	if err != nil {

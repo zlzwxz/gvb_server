@@ -11,12 +11,25 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// UpdatePasswordRequest 修改密码请求参数
 type UpdatePasswordRequest struct {
-	OldPwd string `json:"old_pwd" binding:"required" msg:"请输入旧密码"` // 旧密码
-	Pwd    string `json:"pwd"binding:"required" msg:"请输入新密码"`      // 新密码
+	OldPwd string `json:"old_pwd" binding:"required" msg:"请输入旧密码" swag:"description:旧密码"` // 旧密码
+	Pwd    string `json:"pwd"binding:"required" msg:"请输入新密码" swag:"description:新密码"`      // 新密码
 }
 
-// UserUpdatePassword 修改登录人的id
+// UserUpdatePassword 修改用户密码
+// @Summary 修改用户密码
+// @Description 修改当前登录用户的密码
+// @Tags 用户管理
+// @Accept json
+// @Produce json
+// @Param token header string true "token"
+// @Param data body UpdatePasswordRequest true "密码信息"
+// @Success 200 {object} res.Response{msg=string} "修改成功"
+// @Failure 400 {object} res.Response "请求错误"
+// @Failure 401 {object} res.Response "未授权"
+// @Failure 404 {object} res.Response "用户不存在"
+// @Router /api/user_password [put]
 func (UserApi) UserUpdatePassword(c *gin.Context) {
 	_claims, _ := c.Get("claims")
 	claims := _claims.(*jwts.CustomClaims)

@@ -12,11 +12,21 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// TagResponse 标签响应结构
 type TagResponse struct {
-	Label string `json:"label"`
-	Value string `json:"value"`
+	Label string `json:"label" swag:"description:标签显示名"`
+	Value string `json:"value" swag:"description:标签值"`
 }
 
+// TagNameListView 获取标签名称列表
+// @Summary 获取标签名称列表
+// @Description 获取所有文章标签的名称列表
+// @Tags 标签管理
+// @Accept json
+// @Produce json
+// @Success 200 {object} res.Response{data=[]TagResponse} "获取成功"
+// @Failure 500 {object} res.Response "查询失败"
+// @Router /api/tags/names [get]
 func (TagApi) TagNameListView(c *gin.Context) {
 	type T struct {
 		DocCountErrorUpperBound int `json:"doc_count_error_upper_bound"`

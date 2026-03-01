@@ -13,19 +13,32 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// ArticleUpdateRequest 文章更新请求参数
 type ArticleUpdateRequest struct {
-	Title    string   `json:"title"`     // 文章标题
-	Abstract string   `json:"abstract"`  // 文章简介
-	Content  string   `json:"content"`   // 文章内容
-	Category string   `json:"category"`  // 文章分类
-	Source   string   `json:"source"`    // 文章来源
-	Link     string   `json:"link"`      // 原文链接
-	BannerID uint     `json:"banner_id"` // 文章封面id
-	Tags     []string `json:"tags"`      // 文章标签
-	ID       string   `json:"id"`
+	Title    string   `json:"title" swag:"description:文章标题"`     // 文章标题
+	Abstract string   `json:"abstract" swag:"description:文章简介"`  // 文章简介
+	Content  string   `json:"content" swag:"description:文章内容"`   // 文章内容
+	Category string   `json:"category" swag:"description:文章分类"`  // 文章分类
+	Source   string   `json:"source" swag:"description:文章来源"`    // 文章来源
+	Link     string   `json:"link" swag:"description:原文链接"`      // 原文链接
+	BannerID uint     `json:"banner_id" swag:"description:文章封面ID"` // 文章封面id
+	Tags     []string `json:"tags" swag:"description:文章标签"`      // 文章标签
+	ID       string   `json:"id" swag:"description:文章ID"`
 }
 
 // ArticleUpdateView 更新文章
+// @Summary 更新文章
+// @Description 更新指定ID的文章信息
+// @Tags 文章管理
+// @Accept json
+// @Produce json
+// @Param token header string true "token"
+// @Param data body ArticleUpdateRequest true "文章更新信息"
+// @Success 200 {object} res.Response{msg=string} "更新成功"
+// @Failure 400 {object} res.Response "请求错误"
+// @Failure 401 {object} res.Response "未授权"
+// @Failure 404 {object} res.Response "文章不存在"
+// @Router /api/articles [put]
 func (ArticleApi) ArticleUpdateView(c *gin.Context) {
 	var cr ArticleUpdateRequest
 	err := c.ShouldBindJSON(&cr)

@@ -11,11 +11,12 @@ import (
 	"github.com/olivere/elastic/v7"
 )
 
+// TagsResponse 标签响应结构
 type TagsResponse struct {
-	Tag           string   `json:"tag"`
-	Count         int      `json:"count"`
-	ArticleIDList []string `json:"article_id_list"`
-	CreatedAt     string   `json:"created_at"`
+	Tag           string   `json:"tag" swag:"description:标签名称"`
+	Count         int      `json:"count" swag:"description:文章数量"`
+	ArticleIDList []string `json:"article_id_list" swag:"description:文章ID列表"`
+	CreatedAt     string   `json:"created_at" swag:"description:创建时间"`
 }
 
 type TagsType struct {
@@ -35,6 +36,17 @@ type TagsType struct {
 	} `json:"buckets"`
 }
 
+// ArticleTagListView 获取文章标签列表
+// @Summary 获取文章标签列表
+// @Description 获取文章标签列表，包含每个标签的文章数量
+// @Tags 文章管理
+// @Accept json
+// @Produce json
+// @Param page query int false "页码"
+// @Param limit query int false "每页数量"
+// @Success 200 {object} res.Response{data=object{count=int64,list=[]TagsResponse}} "获取成功"
+// @Failure 400 {object} res.Response "请求错误"
+// @Router /api/articles/tags [get]
 func (ArticleApi) ArticleTagListView(c *gin.Context) {
 
 	var cr models.PageInfo
@@ -50,8 +62,6 @@ func (ArticleApi) ArticleTagListView(c *gin.Context) {
 
 	result, err := global.ESClient.
 		Search(models.ArticleModel{}.Index()).
-		//NewCardinalityAggregation  // 会对指标进行去重
-		//NewValueCountAggregation   // 不会进行去重操作
 		Aggregation("tags", elastic.NewCardinalityAggregation().Field("tags")).
 		Size(0).
 		Do(context.Background())

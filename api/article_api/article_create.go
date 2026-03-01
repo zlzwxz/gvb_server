@@ -29,14 +29,17 @@ type ArticleRequest struct {
 }
 
 // ArticleCreateView 创建新文章
-// @Tags 文章管理
 // @Summary 创建新文章
-// @Description 用户创建新文章，需要登录认证
-// @Param token header string true "token"
-// @Param data body article_api.ArticleRequest true "文章信息"
-// @Router /api/articles [post]
+// @Description 用户创建新文章，需要登录认证，支持富文本内容
+// @Tags 文章管理
+// @Accept json
 // @Produce json
-// @Success 200 {object} res.Response{data=string}
+// @Param token header string true "token"
+// @Param data body ArticleRequest true "文章信息"
+// @Success 200 {object} res.Response{msg=string} "创建成功"
+// @Failure 400 {object} res.Response "请求错误"
+// @Failure 401 {object} res.Response "未授权"
+// @Router /api/articles [post]
 func (ArticleApi) ArticleCreateView(c *gin.Context) {
 	var cr ArticleRequest
 	err := c.ShouldBindJSON(&cr)

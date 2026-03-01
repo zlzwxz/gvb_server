@@ -14,11 +14,23 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// EmailLoginRequest 邮箱登录请求参数
 type EmailLoginRequest struct {
-	UserName string `json:"user_name" binding:"required" msg:"请输入用户名"`
-	Password string `json:"password" binding:"required" msg:"请输入密码"`
+	UserName string `json:"user_name" binding:"required" msg:"请输入用户名" swag:"description:用户名或邮箱"`
+	Password string `json:"password" binding:"required" msg:"请输入密码" swag:"description:密码"`
 }
 
+// EmailLoginView 邮箱登录
+// @Summary 邮箱登录
+// @Description 通过用户名/邮箱和密码进行登录，返回token
+// @Tags 用户管理
+// @Accept json
+// @Produce json
+// @Param data body EmailLoginRequest true "登录参数"
+// @Success 200 {object} res.Response{data=string} "登录成功，返回token"
+// @Failure 400 {object} res.Response "请求错误"
+// @Failure 401 {object} res.Response "用户名或密码错误"
+// @Router /api/email_login [post]
 func (UserApi) EmailLoginView(c *gin.Context) {
 	var cr EmailLoginRequest
 	err := c.ShouldBindJSON(&cr)

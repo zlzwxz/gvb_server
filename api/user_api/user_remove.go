@@ -10,6 +10,19 @@ import (
 	"gorm.io/gorm"
 )
 
+// UserRemoveView 批量删除用户
+// @Summary 批量删除用户
+// @Description 根据用户ID列表批量删除用户
+// @Tags 用户管理
+// @Accept json
+// @Produce json
+// @Param token header string true "token"
+// @Param data body models.RemoveRequest true "用户ID列表"
+// @Success 200 {object} res.Response{msg=string} "删除成功"
+// @Failure 400 {object} res.Response "请求错误"
+// @Failure 401 {object} res.Response "未授权"
+// @Failure 404 {object} res.Response "用户不存在"
+// @Router /api/users [delete]
 func (UserApi) UserRemoveView(c *gin.Context) {
 	var cr models.RemoveRequest
 	err := c.ShouldBindJSON(&cr)

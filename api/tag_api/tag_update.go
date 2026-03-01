@@ -9,6 +9,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// TagUpdateView 更新标签
+// @Summary 更新标签
+// @Description 更新指定ID的标签名称
+// @Tags 标签管理
+// @Accept json
+// @Produce json
+// @Param token header string true "token"
+// @Param id path string true "标签ID"
+// @Param data body TagRequest true "标签信息"
+// @Success 200 {object} res.Response{msg=string} "更新成功"
+// @Failure 400 {object} res.Response "请求错误"
+// @Failure 401 {object} res.Response "未授权"
+// @Failure 404 {object} res.Response "标签不存在"
+// @Router /api/tags/{id} [put]
 func (TagApi) TagUpdateView(c *gin.Context) {
 
 	// 从上下文参数中获取ID值

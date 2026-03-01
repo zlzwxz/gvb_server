@@ -28,7 +28,7 @@ type CollResponse struct {
 // @Param limit query int false "每页数量，默认10"
 // @Router /api/articles/collects [get]
 // @Produce json
-// @Success 200 {object} res.Response{data=res.ListResponse{list=[]CollResponse}}
+// @Success 200 {object} res.Response{data=object{count=int64,list=[]CollResponse}} "获取成功"
 func (ArticleApi) ArticleCollListView(c *gin.Context) {
 
 	var cr models.PageInfo
