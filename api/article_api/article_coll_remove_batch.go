@@ -14,6 +14,15 @@ import (
 	"github.com/olivere/elastic/v7"
 )
 
+// ArticleCollBatchRemoveView 批量取消收藏文章
+// @Tags 文章管理
+// @Summary 批量取消收藏文章
+// @Description 批量取消当前登录用户收藏的文章
+// @Param token header string true "token"
+// @Param data body models.ESIDListRequest true "文章ID列表"
+// @Router /api/articles/collects/batch [delete]
+// @Produce json
+// @Success 200 {object} res.Response{data=string}
 func (ArticleApi) ArticleCollBatchRemoveView(c *gin.Context) {
 	var cr models.ESIDListRequest
 

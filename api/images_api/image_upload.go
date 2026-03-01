@@ -1,13 +1,18 @@
 package images_api
 
 import (
-	"github.com/gin-gonic/gin"
+	"fmt"
 	"gvb-server/global"
 	"gvb-server/models/res"
-	"gvb-server/service"
 	"gvb-server/service/image_ser"
-	"io/fs"
+	"gvb-server/utils"
+	"gvb-server/utils/jwts"
 	"os"
+	"path"
+	"strings"
+	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 type FileUploadResponse struct {
@@ -16,66 +21,71 @@ type FileUploadResponse struct {
 	Msg       string `json:"msg"`        // 消息
 }
 
-// ImageUploadView 上传图片（支持单个或多个）
-// @Tags 图片管理
-// @Summary 批量上传图片
-// @Description 上传单个或多个图片文件，返回图片的URL信息
-// @Accept multipart/form-data
-// @Produce json
-// @Param images[] formData file true "图片文件(可多选)"
-// @Success 200 {object} res.Response{data=[]image_ser.FileUploadResponse}
-// @Router /api/images [post]
 func (ImagesApi) ImageUploadView(c *gin.Context) {
-	// 上传多个图片
-	form, err := c.MultipartForm()
+	file, err := c.FormFile("image")
 	if err != nil {
-		res.FailWithMessage(err.Error(), c)
+		global.Log.Error(err)
+		res.FailWithMessage("参数校验失败", c)
 		return
 	}
-	fileList, ok := form.File["images[]"]
-	if !ok {
-		res.FailWithMessage("不存在的文件", c)
+	_claims, _ := c.Get("claims")
+	claims := _claims.(*jwts.CustomClaims)
+	if claims.Role == 3 {
+		res.FailWithMessage("游客用户不可上传图片", c)
 		return
 	}
 
-	// 判断路径是否存在
+	fileName := file.Filename
 	basePath := global.Config.Upload.Path
-	_, err = os.ReadDir(basePath)
+	nameList := strings.Split(fileName, ".")
+	suffix := strings.ToLower(nameList[len(nameList)-1])
+	if !utils.InList(suffix, image_ser.WhiteImageList) {
+		res.FailWithMessage("非法文件", c)
+		return
+	}
+	// 判断文件大小
+	size := float64(file.Size) / float64(1024*1024)
+	if size >= float64(global.Config.Upload.Max_Size) {
+		msg := fmt.Sprintf("图片大小超过设定大小，当前大小为:%.2fMB， 设定大小为：%dMB ", size, global.Config.Upload.Max_Size)
+		res.FailWithMessage(msg, c)
+		return
+	}
+
+	// 创建这个文件夹 /uploads/file/nick_name
+	dirList, err := os.ReadDir(basePath)
 	if err != nil {
-		// 递归创建
-		err = os.MkdirAll(basePath, fs.ModePerm)
+		res.FailWithMessage("文件目录不存在", c)
+		return
+	}
+	if !isInDirEntry(dirList, claims.NickName) {
+		// 创建这个目录
+		err := os.Mkdir(path.Join(basePath, claims.NickName), 077)
 		if err != nil {
 			global.Log.Error(err)
 		}
 	}
+	// 1.如果存在重名，就加随机字符串 时间戳
+	// 2.直接+时间戳
+	now := time.Now().Format("20060102150405")
+	fileName = nameList[0] + "_" + now + "." + suffix
+	filePath := path.Join(basePath, claims.NickName, fileName)
 
-	// 不存在就创建
-	var resList []image_ser.FileUploadResponse
-
-	for _, file := range fileList {
-
-		// 上传文件
-
-		serviceRes := service.ServiceApp.ImageService.ImageUploadService(file)
-		if !serviceRes.IsSuccess {
-			resList = append(resList, serviceRes)
-			continue
-		}
-		// 成功的
-		if !global.Config.QiNiu.Enable {
-			// 本地还得保存一下
-			err = c.SaveUploadedFile(file, serviceRes.FileName)
-			if err != nil {
-				global.Log.Error(err)
-				serviceRes.Msg = err.Error()
-				serviceRes.IsSuccess = false
-				resList = append(resList, serviceRes)
-				continue
-			}
-		}
-		resList = append(resList, serviceRes)
+	err = c.SaveUploadedFile(file, filePath)
+	if err != nil {
+		res.FailWithMessage(err.Error(), c)
+		return
 	}
 
-	res.OkWithData(resList, c)
+	res.OkWithData("/"+filePath, c)
+	return
 
+}
+
+func isInDirEntry(dirList []os.DirEntry, name string) bool {
+	for _, entry := range dirList {
+		if entry.Name() == name && entry.IsDir() {
+			return true
+		}
+	}
+	return false
 }

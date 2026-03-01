@@ -3,17 +3,19 @@ package chat_api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/DanPlayer/randomname"
-	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
-	"github.com/sirupsen/logrus"
 	"gvb-server/global"
 	"gvb-server/models"
 	"gvb-server/models/ctype"
 	"gvb-server/models/res"
+	"gvb-server/utils"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/DanPlayer/randomname"
+	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
+	"github.com/sirupsen/logrus"
 )
 
 type ChatUser struct {
@@ -185,6 +187,6 @@ func SendMsg(_addr string, response GroupResponse) {
 
 func getIPAndAddr(_addr string) (ip string, addr string) {
 	addrList := strings.Split(_addr, ":")
-	addr = "内网"
+	addr = utils.GetAddr(addrList[0])
 	return addrList[0], addr
 }

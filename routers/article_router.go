@@ -29,4 +29,8 @@ func (router RouterGroup) ArticleRouter() {
 	router.DELETE("articles/collects/batch", middleware.JwtAuth(), articleApp.ArticleCollBatchRemoveView)
 	//全文文章搜索
 	router.GET("article/text", articleApp.FullTextSearchView)
+	//文章分类列表
+	router.GET("articles/categorys", articleApp.ArticleCategoryListView)
+	//根据文章id获取文章正文
+	router.GET("articles/content/:id", articleApp.ArticleContentByIDView)
 }

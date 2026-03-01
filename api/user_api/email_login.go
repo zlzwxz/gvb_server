@@ -2,13 +2,16 @@ package user_api
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"gvb-server/global"
 	"gvb-server/models"
+	"gvb-server/models/ctype"
 	"gvb-server/models/res"
 	"gvb-server/plugins/log_stash"
+	"gvb-server/utils"
 	"gvb-server/utils/jwts"
 	"gvb-server/utils/pwd"
+
+	"github.com/gin-gonic/gin"
 )
 
 type EmailLoginRequest struct {
@@ -28,7 +31,7 @@ func (UserApi) EmailLoginView(c *gin.Context) {
 
 	//添加日志记录
 	log := log_stash.NewLogByGin(c)
-
+	ip, addr := utils.GetAddrByGin(c)
 	err = global.DB.Take(&userModel, "user_name = ? or email = ?", cr.UserName, cr.UserName).Error
 	if err != nil {
 		// 没找到
@@ -58,6 +61,19 @@ func (UserApi) EmailLoginView(c *gin.Context) {
 		return
 	}
 	log.Info(fmt.Sprintf("用户名:%v  登录成功", cr.UserName))
+
+	// 创建结构体变量，然后传递地址给Create方法
+	loginData := models.LoginDataModel{
+		UserID:    userModel.ID,
+		IP:        ip,
+		NickName:  userModel.NickName,
+		Token:     token,
+		Device:    "",
+		Addr:      addr,
+		LoginType: int(ctype.SignEmail), // 显式类型转换
+	}
+	global.DB.Create(&loginData) // 传递地址
+
 	res.OkWithData(token, c)
 
 }

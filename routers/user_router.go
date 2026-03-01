@@ -20,7 +20,13 @@ func (router RouterGroup) UserRouter() {
 	router.POST("/logout", middleware.JwtAuth(), app.LogoutView)
 	router.DELETE("/users", middleware.JwtAdmin(), app.UserRemoveView)
 	router.POST("/user_bind_email", middleware.JwtAuth(), app.UserBindEmailView)
-	router.POST("/user_create", middleware.JwtAdmin(), app.UserCreateView)
+	router.POST("/user_create", app.UserCreateView)
 	//qq登录正式地址
 	//router.POST("login", app.QQLoginView)
+	//用户信息
+	router.GET("/user_info", middleware.JwtAuth(), app.UserInfoView)
+	//修改用户昵称，签名，链接
+	router.PUT("/user_update_nick_name", middleware.JwtAuth(), app.UserUpdateNickName)
+	//获取qq登录的跳转链接
+	router.GET("/qq_login_path", app.QQLoginLinkView)
 }

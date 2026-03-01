@@ -19,6 +19,16 @@ type CollResponse struct {
 	CreatedAt string `json:"created_at"`
 }
 
+// ArticleCollListView 获取用户收藏的文章列表
+// @Tags 文章管理
+// @Summary 获取用户收藏的文章列表
+// @Description 获取当前登录用户收藏的文章列表，支持分页
+// @Param token header string true "token"
+// @Param page query int false "页码，默认1"
+// @Param limit query int false "每页数量，默认10"
+// @Router /api/articles/collects [get]
+// @Produce json
+// @Success 200 {object} res.Response{data=res.ListResponse{list=[]CollResponse}}
 func (ArticleApi) ArticleCollListView(c *gin.Context) {
 
 	var cr models.PageInfo

@@ -8,4 +8,5 @@ func (router RouterGroup) TagRouter() {
 	router.GET("tags", tagApp.TagListView)
 	router.PUT("tags/:id", tagApp.TagUpdateView)
 	router.DELETE("tags", tagApp.TagRemoveView)
+	router.GET("tags/names", tagApp.TagNameListView)
 }

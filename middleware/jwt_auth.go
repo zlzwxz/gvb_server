@@ -2,12 +2,13 @@ package middleware
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"gvb-server/models/ctype"
 	"gvb-server/models/res"
 	"gvb-server/plugins/log_stash"
 	"gvb-server/service/redis_ser"
 	"gvb-server/utils/jwts"
+
+	"github.com/gin-gonic/gin"
 )
 
 func JwtAuth() gin.HandlerFunc {
@@ -47,9 +48,8 @@ func JwtAdmin() gin.HandlerFunc {
 		}
 		claims, err := jwts.ParseToken(token)
 		if err != nil {
-			res.FailWithMessage("token错误", c)
 			log.Info(fmt.Sprintf("token错误"))
-			res.FailWithMessage("未携带token", c)
+			res.FailWithMessage("未携带token,token错误", c)
 			c.Abort()
 			return
 		}

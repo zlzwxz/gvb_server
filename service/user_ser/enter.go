@@ -6,6 +6,7 @@ import (
 	"gvb-server/models"
 	"gvb-server/models/ctype"
 	"gvb-server/service/redis_ser"
+	"gvb-server/utils"
 	"gvb-server/utils/jwts"
 	"gvb-server/utils/pwd"
 	"time"
@@ -32,11 +33,10 @@ func (UserService) CreateUser(userName, nickName, password string, role ctype.Ro
 	}
 	// 对密码进行hash
 	hashPwd := pwd.HashPwd(password)
-
 	// 头像问题
 	// 1. 默认头像
 	// 2. 随机选择头像
-
+	addr := utils.GetAddr(ip)
 	// 入库
 	err = global.DB.Create(&models.UserModel{
 		NickName:   nickName,
@@ -46,7 +46,7 @@ func (UserService) CreateUser(userName, nickName, password string, role ctype.Ro
 		Role:       role,
 		Avatar:     Avatar,
 		IP:         ip,
-		Addr:       "内网地址",
+		Addr:       addr,
 		SignStatus: ctype.SignEmail,
 	}).Error
 	if err != nil {

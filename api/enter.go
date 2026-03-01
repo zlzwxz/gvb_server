@@ -5,6 +5,7 @@ import (
 	"gvb-server/api/article_api"
 	"gvb-server/api/chat_api"
 	"gvb-server/api/comment_api"
+	"gvb-server/api/data_api"
 	"gvb-server/api/digg_api"
 	"gvb-server/api/images_api"
 	"gvb-server/api/log_api"
@@ -30,6 +31,7 @@ type ApiGroup struct {
 	NewApi      new_api.NewApi
 	ChatApi     chat_api.ChatApi
 	LogApi      log_api.LogApi
+	DataApi     data_api.DataApi
 }
 
 // 实例化对象
