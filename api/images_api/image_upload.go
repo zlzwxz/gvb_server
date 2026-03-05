@@ -3,10 +3,13 @@ package images_api
 import (
 	"fmt"
 	"gvb-server/global"
+	"gvb-server/models"
+	"gvb-server/models/ctype"
 	"gvb-server/models/res"
 	"gvb-server/service/image_ser"
 	"gvb-server/utils"
 	"gvb-server/utils/jwts"
+	"io"
 	"os"
 	"path"
 	"strings"
@@ -34,11 +37,23 @@ type FileUploadResponse struct {
 // @Failure 400 {object} res.Response "请求错误"
 // @Failure 401 {object} res.Response "未授权或游客不可上传"
 // @Router /api/images [post]
+// ImageUploadView 上传图片
+// @Summary 上传图片
+// @Description 上传图片文件，支持 jpg、png、gif 等格式，有大小限制
+// @Tags 图片管理
+// @Accept multipart/form-data
+// @Produce json
+// @Param token header string true "token"
+// @Param image formData file true "图片文件"
+// @Success 200 {object} res.Response{data=string} "上传成功，返回文件路径"
+// @Failure 400 {object} res.Response "请求错误"
+// @Failure 401 {object} res.Response "未授权或游客不可上传"
+// @Router /api/images [post]
 func (ImagesApi) ImageUploadView(c *gin.Context) {
 	file, err := c.FormFile("image")
 	if err != nil {
 		global.Log.Error(err)
-		res.FailWithMessage("参数校验失败", c)
+		res.FailWithCode(res.ArgumentError, c)
 		return
 	}
 	_claims, _ := c.Get("claims")
@@ -64,6 +79,30 @@ func (ImagesApi) ImageUploadView(c *gin.Context) {
 		return
 	}
 
+	// 读取文件内容计算 hash
+	fileObj, err := file.Open()
+	if err != nil {
+		global.Log.Error(err)
+		res.FailWithMessage("文件打开失败", c)
+		return
+	}
+	byteData, err := io.ReadAll(fileObj)
+	if err != nil {
+		global.Log.Error(err)
+		res.FailWithMessage("文件读取失败", c)
+		return
+	}
+	imageHash := utils.Md5(byteData)
+
+	// 检查数据库中是否已存在该图片
+	var bannerModel models.BannerModel
+	err = global.DB.Take(&bannerModel, "hash = ?", imageHash).Error
+	if err == nil {
+		// 图片已存在，直接返回已保存的路径
+		res.OkWithData(bannerModel.Path, c)
+		return
+	}
+
 	// 创建这个文件夹 /uploads/file/nick_name
 	dirList, err := os.ReadDir(basePath)
 	if err != nil {
@@ -72,13 +111,15 @@ func (ImagesApi) ImageUploadView(c *gin.Context) {
 	}
 	if !isInDirEntry(dirList, claims.NickName) {
 		// 创建这个目录
-		err := os.Mkdir(path.Join(basePath, claims.NickName), 077)
+		err := os.Mkdir(path.Join(basePath, claims.NickName), 0755)
 		if err != nil {
 			global.Log.Error(err)
+			res.FailWithMessage("创建目录失败", c)
+			return
 		}
 	}
 	// 1.如果存在重名，就加随机字符串 时间戳
-	// 2.直接+时间戳
+	// 2.直接 + 时间戳
 	now := time.Now().Format("20060102150405")
 	fileName = nameList[0] + "_" + now + "." + suffix
 	filePath := path.Join(basePath, claims.NickName, fileName)
@@ -86,6 +127,19 @@ func (ImagesApi) ImageUploadView(c *gin.Context) {
 	err = c.SaveUploadedFile(file, filePath)
 	if err != nil {
 		res.FailWithMessage(err.Error(), c)
+		return
+	}
+
+	// 图片入库
+	err = global.DB.Create(&models.BannerModel{
+		Path:      "/" + filePath,
+		Hash:      imageHash,
+		Name:      fileName,
+		ImageType: ctype.Local,
+	}).Error
+	if err != nil {
+		global.Log.Error(err)
+		res.FailWithMessage("图片入库失败", c)
 		return
 	}
 
