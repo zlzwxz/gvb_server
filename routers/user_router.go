@@ -22,7 +22,7 @@ func (router RouterGroup) UserRouter() {
 	router.POST("/user_bind_email", middleware.JwtAuth(), app.UserBindEmailView)
 	router.POST("/user_create", app.UserCreateView)
 	//qq登录正式地址
-	//router.POST("login", app.QQLoginView)
+	router.POST("/qq_login", app.QQLoginView)
 	//用户信息
 	router.GET("/user_info", middleware.JwtAuth(), app.UserInfoView)
 	//修改用户昵称，签名，链接

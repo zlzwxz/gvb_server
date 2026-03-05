@@ -17,7 +17,7 @@ logger:
   log_in_console: true
 system:
   host: 0.0.0.0
-  port: 8080
+  port: 8181
   env: release
 email:
   host: smtp.qq.com

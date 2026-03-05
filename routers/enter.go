@@ -2,6 +2,7 @@ package routers
 
 import (
 	"gvb-server/global"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -19,6 +20,8 @@ func InitRouter() *gin.Engine {
 	router := gin.Default()
 	//启动swaggerweb网页路由
 	router.GET("/swagger/*any", gs.WrapHandler(swaggerFiles.Handler))
+	//静态文件路由
+	router.StaticFS("uploads", http.Dir("uploads"))
 	//测试qq登录
 	//router.GET("/login", user_api.UserApi{}.QQLoginView)
 	apiRouterGroup := router.Group("/api")
