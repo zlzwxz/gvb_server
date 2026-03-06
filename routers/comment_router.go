@@ -5,6 +5,7 @@ import (
 	"gvb-server/middleware"
 )
 
+// CommentRouter 注册评论相关路由。
 func (router RouterGroup) CommentRouter() {
 	commentApp := api.ApiGroupApp.CommentApi
 	router.POST("comments", middleware.JwtAuth(), commentApp.CommentCreateView)

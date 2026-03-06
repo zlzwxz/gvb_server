@@ -1,7 +1,6 @@
 package user_api
 
 import (
-	"fmt"
 	"gvb-server/global"
 	"gvb-server/models"
 	"gvb-server/models/res"
@@ -9,6 +8,7 @@ import (
 	"gvb-server/utils/jwts"
 	"gvb-server/utils/pwd"
 	"gvb-server/utils/random"
+	"strings"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -18,7 +18,7 @@ import (
 type BindEmailRequest struct {
 	Email    string  `json:"email" binding:"required,email" msg:"邮箱非法" swag:"description:邮箱地址"`
 	Code     *string `json:"code" swag:"description:验证码，第二次请求时必填"`
-	Password string  `json:"password" swag:"description:新密码，第二次请求时必填"`
+	Password string  `json:"password" swag:"description:可选，新密码"`
 }
 
 // UserBindEmailView 用户绑定邮箱
@@ -45,6 +45,8 @@ func (UserApi) UserBindEmailView(c *gin.Context) {
 		res.FailWithError(err, &cr, c)
 		return
 	}
+	emailValue := strings.ToLower(strings.TrimSpace(cr.Email))
+
 	session := sessions.Default(c)
 	if cr.Code == nil {
 		// 第一次，后台发验证码
@@ -52,6 +54,7 @@ func (UserApi) UserBindEmailView(c *gin.Context) {
 		code := random.Code(4)
 		// 写入session
 		session.Set("valid_code", code)
+		session.Set("valid_email", emailValue)
 
 		err = session.Save()
 		if err != nil {
@@ -59,19 +62,30 @@ func (UserApi) UserBindEmailView(c *gin.Context) {
 			res.FailWithMessage("session错误", c)
 			return
 		}
-		err = email.NewCode().Send(cr.Email, "你的验证码是 "+code)
+		err = email.NewCode().Send(emailValue, "你的验证码是 "+code)
 		if err != nil {
 			global.Log.Error(err)
+			res.FailWithMessage(readableEmailSendError(err), c)
+			return
 		}
 		res.OkWithMessage("验证码已发送，请查收", c)
 		return
 	}
 	// 第二次，用户输入邮箱，验证码，密码
-	code := session.Get("valid_code")
-	fmt.Println(*cr.Code, " code ", code)
+	codeValue := strings.TrimSpace(*cr.Code)
+	code, _ := session.Get("valid_code").(string)
+	savedEmail, _ := session.Get("valid_email").(string)
+	if strings.TrimSpace(code) == "" || strings.TrimSpace(savedEmail) == "" {
+		res.FailWithMessage("验证码已失效，请重新获取", c)
+		return
+	}
 	// 校验验证码
-	if code != *cr.Code {
+	if strings.TrimSpace(code) != codeValue {
 		res.FailWithMessage("验证码错误", c)
+		return
+	}
+	if strings.TrimSpace(savedEmail) != emailValue {
+		res.FailWithMessage("两次填写的邮箱不一致，请重新获取验证码", c)
 		return
 	}
 	// 修改用户的邮箱
@@ -81,21 +95,26 @@ func (UserApi) UserBindEmailView(c *gin.Context) {
 		res.FailWithMessage("用户不存在", c)
 		return
 	}
-	if len(cr.Password) < 4 {
-		res.FailWithMessage("密码强度太低", c)
-		return
-	}
-	hashPwd := pwd.HashPwd(cr.Password)
 	// 第一次的邮箱，和第二次的邮箱也要做一致性校验
-	err = global.DB.Model(&user).Updates(map[string]any{
-		"email":    cr.Email,
-		"password": hashPwd,
-	}).Error
+	updateMap := map[string]any{
+		"email": emailValue,
+	}
+	if strings.TrimSpace(cr.Password) != "" {
+		if len(cr.Password) < 4 {
+			res.FailWithMessage("密码强度太低", c)
+			return
+		}
+		updateMap["password"] = pwd.HashPwd(cr.Password)
+	}
+	err = global.DB.Model(&user).Updates(updateMap).Error
 	if err != nil {
 		global.Log.Error(err)
 		res.FailWithMessage("绑定邮箱失败", c)
 		return
 	}
+	session.Delete("valid_code")
+	session.Delete("valid_email")
+	_ = session.Save()
 	// 完成绑定
 	res.OkWithMessage("邮箱绑定成功", c)
 	return

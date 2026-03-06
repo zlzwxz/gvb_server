@@ -16,6 +16,7 @@ type UserUpdateNicknameRequest struct {
 	NickName string `json:"nick_name" structs:"nick_name" swag:"description:用户昵称"`
 	Sign     string `json:"sign" structs:"sign" swag:"description:用户签名"`
 	Link     string `json:"link" structs:"link" swag:"description:用户链接"`
+	Avatar   string `json:"avatar" structs:"avatar" swag:"description:用户头像"`
 }
 
 // UserUpdateNickName 修改当前登录人的昵称，签名，链接

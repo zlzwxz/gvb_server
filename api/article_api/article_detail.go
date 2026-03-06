@@ -1,7 +1,6 @@
 package article_api
 
 import (
-	"fmt"
 	"gvb-server/models"
 	"gvb-server/models/res"
 	"gvb-server/service/es_ser"
@@ -24,7 +23,6 @@ import (
 func (ArticleApi) ArticleDetailView(c *gin.Context) {
 	var cr models.ESIDRequest
 	err := c.ShouldBindUri(&cr)
-	fmt.Println(cr)
 	if err != nil {
 		res.FailWithCode(res.ArgumentError, c)
 		return
@@ -32,6 +30,10 @@ func (ArticleApi) ArticleDetailView(c *gin.Context) {
 	model, err := es_ser.CommDetail(cr.ID)
 	if err != nil {
 		res.FailWithMessage(err.Error(), c)
+		return
+	}
+	if !canViewArticle(model, optionalClaims(c)) {
+		res.FailWithMessage("文章审核中或已驳回", c)
 		return
 	}
 	//用户浏览的时候加上浏览量
@@ -65,6 +67,10 @@ func (ArticleApi) ArticleDetailByTitleView(c *gin.Context) {
 	model, err := es_ser.CommDetailByKeyword(cr.Title)
 	if err != nil {
 		res.FailWithMessage(err.Error(), c)
+		return
+	}
+	if !canViewArticle(model, optionalClaims(c)) {
+		res.FailWithMessage("文章审核中或已驳回", c)
 		return
 	}
 	res.OkWithData(model, c)

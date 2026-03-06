@@ -16,6 +16,9 @@ import (
 func CommList(option Option) (list []models.ArticleModel, count int, err error) {
 
 	boolSearch := elastic.NewBoolQuery()
+	if option.Query != nil {
+		boolSearch.Must(option.Query)
+	}
 
 	if option.Key != "" {
 		boolSearch.Must(
@@ -91,7 +94,6 @@ func CommList(option Option) (list []models.ArticleModel, count int, err error) 
 		model.LookCount += lookCount
 		//添加评论数
 		model.CommentCount += commentInfo[hit.Id]
-		global.Log.Info("点赞数", model.DiggCount, "浏览量", model.LookCount)
 
 		demoList = append(demoList, model)
 	}

@@ -24,38 +24,53 @@ type MenuResponse struct {
 
 // MenuListView 获取菜单列表
 // @Summary 获取菜单列表
-// @Description 获取所有菜单信息及关联的轮播图，按排序降序排列
+// @Description 获取所有菜单信息及关联的轮播图，按排序升序排列，便于前端直接渲染
 // @Tags 菜单管理
 // @Accept json
 // @Produce json
 // @Success 200 {object} res.Response{data=[]MenuResponse} "返回菜单列表"
 // @Router /api/menus [get]
 func (MenuApi) MenuListView(c *gin.Context) {
-	// 先查菜单
 	var menuList []models.MenuModel
-	var menuIDList []uint
-	global.DB.Order("sort desc").Find(&menuList).Select("id").Scan(&menuIDList)
-	// 查连接表
+	if err := global.DB.Order("sort asc").Find(&menuList).Error; err != nil {
+		global.Log.Error(err)
+		res.FailWithMessage("获取菜单列表失败", c)
+		return
+	}
+	if len(menuList) == 0 {
+		res.OkWithData([]MenuResponse{}, c)
+		return
+	}
+
+	menuIDList := make([]uint, 0, len(menuList))
+	for _, menu := range menuList {
+		menuIDList = append(menuIDList, menu.ID)
+	}
+
 	var menuBanners []models.MenuBannerModel
-	global.DB.Preload("BannerModel").Order("sort desc").Find(&menuBanners, "menu_id in ?", menuIDList)
-	var menus []MenuResponse
+	if err := global.DB.Preload("BannerModel").
+		Order("menu_id asc").
+		Order("sort asc").
+		Find(&menuBanners, "menu_id in ?", menuIDList).Error; err != nil {
+		global.Log.Error(err)
+		res.FailWithMessage("获取菜单轮播图失败", c)
+		return
+	}
+
+	bannerMap := make(map[uint][]Banner, len(menuList))
+	for _, banner := range menuBanners {
+		bannerMap[banner.MenuID] = append(bannerMap[banner.MenuID], Banner{
+			ID:   banner.BannerID,
+			Path: banner.BannerModel.Path,
+		})
+	}
+
+	menus := make([]MenuResponse, 0, len(menuList))
 	for _, model := range menuList {
-		// model就是一个菜单
-		var banners []Banner
-		for _, banner := range menuBanners {
-			if model.ID != banner.MenuID {
-				continue
-			}
-			banners = append(banners, Banner{
-				ID:   banner.BannerID,
-				Path: banner.BannerModel.Path,
-			})
-		}
 		menus = append(menus, MenuResponse{
 			MenuModel: model,
-			Banners:   banners,
+			Banners:   bannerMap[model.ID],
 		})
 	}
 	res.OkWithData(menus, c)
-	return
 }

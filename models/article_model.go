@@ -37,6 +37,21 @@ type ArticleModel struct {
 	BannerUrl string `json:"banner_url" structs:"banner_url"` // 文章封面
 
 	Tags ctype.Array `json:"tags" structs:"tags"` // 文章标签
+
+	Attachments []ArticleAttachment `json:"attachments" structs:"attachments"` // 附件列表
+
+	ReviewStatus     ctype.ArticleReviewStatus `json:"review_status" structs:"review_status"`           // 审核状态
+	ReviewReason     string                    `json:"review_reason" structs:"review_reason"`           // 审核备注
+	ReviewedAt       string                    `json:"reviewed_at" structs:"reviewed_at"`               // 审核时间
+	ReviewerID       uint                      `json:"reviewer_id" structs:"reviewer_id"`               // 审核人ID
+	ReviewerNickName string                    `json:"reviewer_nick_name" structs:"reviewer_nick_name"` // 审核人昵称
+}
+
+type ArticleAttachment struct {
+	FileID uint   `json:"file_id"`
+	Name   string `json:"name"`
+	URL    string `json:"url"`
+	Size   int64  `json:"size"`
 }
 
 func (ArticleModel) Index() string {
@@ -103,6 +118,40 @@ func (ArticleModel) Mapping() string {
       },
       "tags": { 
         "type": "keyword"
+      },
+      "attachments": {
+        "type": "nested",
+        "properties": {
+          "file_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "keyword"
+          },
+          "url": {
+            "type": "keyword"
+          },
+          "size": {
+            "type": "long"
+          }
+        }
+      },
+      "review_status": {
+        "type": "integer"
+      },
+      "review_reason": {
+        "type": "text"
+      },
+      "reviewer_id": {
+        "type": "integer"
+      },
+      "reviewer_nick_name": {
+        "type": "keyword"
+      },
+      "reviewed_at": {
+        "type": "date",
+        "null_value": "null",
+        "format": "[yyyy-MM-dd HH:mm:ss]"
       },
       "created_at":{
         "type": "date",

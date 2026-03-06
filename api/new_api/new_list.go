@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"gvb-server/models/res"
 	"gvb-server/service/redis_ser"
-	new2 "gvb-server/utils/news"
 	"gvb-server/utils/requests"
 	"io"
 	"time"
@@ -21,6 +20,7 @@ type params struct {
 }
 
 // header 新闻请求头
+// 第三方接口对请求头要求不高，这里保留结构体主要是为了以后扩展时不用改 handler 结构。
 type header struct {
 	Signaturekey string `form:"signaturekey" structs:"signaturekey" swag:"description:签名key"`
 	Version      string `form:"version" structs:"version" swag:"description:版本号"`
@@ -53,42 +53,46 @@ func (NewApi) NewListView(c *gin.Context) {
 	var cr params
 	var headers header
 
-	err := c.ShouldBindQuery(&cr)
-	fmt.Println(cr)
-	err = c.ShouldBindHeader(&headers)
-	if err != nil {
+	if err := c.ShouldBindQuery(&cr); err != nil {
 		res.FailWithCode(res.ArgumentError, c)
 		return
 	}
-	if cr.Size == 0 {
-		cr.Size = 1
+	_ = c.ShouldBindHeader(&headers)
+
+	if cr.Size <= 0 {
+		cr.Size = 20
+	}
+	if cr.Size > 50 {
+		cr.Size = 50
+	}
+
+	sources := filterEnabledNewsSources(getNewsSources())
+	cr.ID = pickNewsSourceID(cr.ID, sources)
+	if cr.ID == "" {
+		res.FailWithMessage("暂无可用的新闻来源，请先在系统配置里开启资讯榜单", c)
+		return
 	}
 
 	key := fmt.Sprintf("%s-%d", cr.ID, cr.Size)
-	newsData, _ := redis_ser.GetNews(key)
-	if len(newsData) != 0 {
+	if newsData, _ := redis_ser.GetNews(key); len(newsData) != 0 {
 		res.OkWithData(newsData, c)
 		return
 	}
 
-	//获取最新的新闻接口id
-	categoryResp := new2.GetNewsId()
-	for _, datum := range categoryResp.Data {
-		if datum.Type == "热搜榜" {
-			cr.ID = datum.Id
-		}
-	}
-	fmt.Println(cr.ID)
 	httpResponse, err := requests.Post(newAPI+fmt.Sprintf("id=%s&size=%d", cr.ID, cr.Size), cr, structs.Map(headers), timeout)
 	if err != nil {
 		res.FailWithMessage(err.Error(), c)
 		return
 	}
+	defer httpResponse.Body.Close()
 
 	var response NewResponse
 	byteData, err := io.ReadAll(httpResponse.Body)
-	err = json.Unmarshal(byteData, &response)
 	if err != nil {
+		res.FailWithMessage(err.Error(), c)
+		return
+	}
+	if err = json.Unmarshal(byteData, &response); err != nil {
 		res.FailWithMessage(err.Error(), c)
 		return
 	}
@@ -96,7 +100,7 @@ func (NewApi) NewListView(c *gin.Context) {
 		res.FailWithMessage(response.Msg, c)
 		return
 	}
+
 	res.OkWithData(response.Data, c)
-	redis_ser.SetNews(key, response.Data)
-	return
+	_ = redis_ser.SetNews(key, response.Data)
 }

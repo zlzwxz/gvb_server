@@ -8,8 +8,10 @@ import (
 	"github.com/gin-contrib/sessions/cookie"
 )
 
+// store 用于 QQ 登录等依赖 session 的场景。
 var store = cookie.NewStore([]byte("HyvCD89g3VDJ9646BFGEh37GFJ"))
 
+// UserRouter 注册用户认证与用户资料相关路由。
 func (router RouterGroup) UserRouter() {
 	app := api.ApiGroupApp.UserApi
 	router.Use(sessions.Sessions("sessionid", store))
@@ -20,13 +22,13 @@ func (router RouterGroup) UserRouter() {
 	router.POST("/logout", middleware.JwtAuth(), app.LogoutView)
 	router.DELETE("/users", middleware.JwtAdmin(), app.UserRemoveView)
 	router.POST("/user_bind_email", middleware.JwtAuth(), app.UserBindEmailView)
+	router.POST("/user_register_email_code", app.UserRegisterEmailCodeView)
 	router.POST("/user_create", app.UserCreateView)
-	//qq登录正式地址
 	router.POST("/qq_login", app.QQLoginView)
-	//用户信息
 	router.GET("/user_info", middleware.JwtAuth(), app.UserInfoView)
-	//修改用户昵称，签名，链接
 	router.PUT("/user_update_nick_name", middleware.JwtAuth(), app.UserUpdateNickName)
-	//获取qq登录的跳转链接
+	router.POST("/user_check_in", middleware.JwtAuth(), app.UserCheckInView)
+	router.GET("/user_check_in_status", middleware.JwtAuth(), app.UserCheckInStatusView)
 	router.GET("/qq_login_path", app.QQLoginLinkView)
+	router.GET("/user_level_rank", app.UserLevelRankView)
 }

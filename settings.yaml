@@ -61,6 +61,8 @@ qiniu:
   zone: "222"
   prefix: "333"
   size: 0
+news:
+  enabled_source_names: []
 upload:
   path: uploads/file
   max_size: 10

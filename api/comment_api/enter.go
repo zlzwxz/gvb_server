@@ -1,4 +1,4 @@
 package comment_api
 
-type CommentApi struct {
-}
+// CommentApi 聚合评论相关的 HTTP 处理函数。
+type CommentApi struct{}

@@ -38,7 +38,7 @@ func (ArticleApi) ArticleCategoryListView(c *gin.Context) {
 	agg := elastic.NewTermsAggregation().Field("category")
 	result, err := global.ESClient.
 		Search(models.ArticleModel{}.Index()).
-		Query(elastic.NewBoolQuery()).
+		Query(publicVisibleQuery()).
 		Aggregation("categorys", agg).
 		Size(0).
 		Do(context.Background())

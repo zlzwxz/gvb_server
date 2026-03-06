@@ -1,11 +1,11 @@
 package images_api
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"gvb-server/models"
 	"gvb-server/models/res"
 	"gvb-server/service/common"
+	"gvb-server/utils/jwts"
 )
 
 // ImageListView 图片列表
@@ -26,11 +26,32 @@ func (ImagesApi) ImageListView(c *gin.Context) {
 		res.FailWithCode(res.ArgumentError, c)
 		return
 	}
-	fmt.Println(cr)
-	list, count, err := common.ComList(models.BannerModel{}, common.Option{
+	_claims, ok := c.Get("claims")
+	if !ok {
+		res.FailWithMessage("未登录", c)
+		return
+	}
+	claims := _claims.(*jwts.CustomClaims)
+
+	option := common.Option{
 		PageInfo: cr,
 		Debug:    false,
-	})
+	}
+	if !isImageAdmin(claims) {
+		like := imageOwnerPathLike(claims.NickName)
+		if like == "" {
+			res.OkWithList([]models.BannerModel{}, 0, c)
+			return
+		}
+		option.Where = "path LIKE ?"
+		option.WhereArgs = []interface{}{like}
+	}
+
+	list, count, err := common.ComList(models.BannerModel{}, option)
+	if err != nil {
+		res.FailWithMessage(err.Error(), c)
+		return
+	}
 
 	res.OkWithList(list, count, c)
 

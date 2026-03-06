@@ -49,10 +49,11 @@ func (ArticleApi) ArticleCalendarView(c *gin.Context) {
 	query := elastic.NewRangeQuery("created_at").
 		Gte(aYearAgo.Format(format)).
 		Lte(now.Format(format))
+	boolQuery := elastic.NewBoolQuery().Must(query, publicVisibleQuery())
 
 	result, err := global.ESClient.
 		Search(models.ArticleModel{}.Index()).
-		Query(query).
+		Query(boolQuery).
 		Aggregation("calendar", agg).
 		Size(0).
 		Do(context.Background())

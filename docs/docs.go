@@ -28,6 +28,11 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "name": "key",
                         "in": "query"
                     },
@@ -723,6 +728,142 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/articles/collects/manage": {
+            "get": {
+                "description": "获取收藏列表；管理员可通过 scope=all 查看全站，普通用户仅可查看自己的收藏",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "文章管理"
+                ],
+                "summary": "后台收藏管理列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码，默认1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量，默认20",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "all 或 me",
+                        "name": "scope",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "用户ID（仅 scope=all 且管理员可用）",
+                        "name": "user_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "文章ID",
+                        "name": "article_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "count": {
+                                                    "type": "integer",
+                                                    "format": "int64"
+                                                },
+                                                "list": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/definitions/article_api.CollectManageItem"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "批量取消收藏；管理员可取消任意用户收藏，普通用户仅可取消自己的收藏",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "文章管理"
+                ],
+                "summary": "后台批量取消收藏",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "收藏记录列表",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/article_api.CollectManageBatchRemoveRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "取消成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "removed": {
+                                                    "type": "integer"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/articles/content/{id}": {
             "get": {
                 "description": "根据文章ID获取文章正文内容",
@@ -815,6 +956,55 @@ const docTemplate = `{
                         "description": "文章不存在",
                         "schema": {
                             "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/articles/insights": {
+            "get": {
+                "description": "返回统计数据、热门文章、最新文章、热门标签",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "文章管理"
+                ],
+                "summary": "获取首页洞察数据",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "热门文章数量，默认6",
+                        "name": "hot_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "最新文章数量，默认8",
+                        "name": "latest_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/article_api.ArticleInsightsResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -941,6 +1131,35 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "请求错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/chat_groups_records": {
+            "get": {
+                "description": "建立 websocket 连接并加入公共聊天室，后续消息通过 websocket 双向通信。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "聊天管理"
+                ],
+                "summary": "进入聊天室",
+                "responses": {
+                    "101": {
+                        "description": "Switching Protocols",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/res.Response"
                         }
@@ -1599,7 +1818,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "上传图片文件，支持jpg、png、gif等格式，有大小限制",
+                "description": "上传图片文件，支持 jpg、png、gif 等格式，并校验大小、后缀和重复文件。",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -1899,7 +2118,7 @@ const docTemplate = `{
         },
         "/api/menus": {
             "get": {
-                "description": "获取所有菜单信息及关联的轮播图，按排序降序排列",
+                "description": "获取所有菜单信息及关联的轮播图，按排序升序排列，便于前端直接渲染",
                 "consumes": [
                     "application/json"
                 ],
@@ -1926,6 +2145,50 @@ const docTemplate = `{
                                             "items": {
                                                 "$ref": "#/definitions/menu_api.MenuResponse"
                                             }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "按请求体中的菜单ID更新菜单信息，包括轮播图关联",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "菜单管理"
+                ],
+                "summary": "更新菜单",
+                "parameters": [
+                    {
+                        "description": "菜单更新参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/menu_api.MenuRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "更新成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "msg": {
+                                            "type": "string"
                                         }
                                     }
                                 }
@@ -2106,62 +2369,11 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
-            "put": {
-                "description": "更新指定ID的菜单信息，包括轮播图关联",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "菜单管理"
-                ],
-                "summary": "更新菜单",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "菜单ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "菜单更新参数",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/menu_api.MenuRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "更新成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/res.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "msg": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
             }
         },
         "/api/messages": {
             "get": {
-                "description": "获取当前用户的消息列表，按消息组分组显示",
+                "description": "获取当前用户的消息列表，按对话维度分组展示最近一条消息、总消息数和未读数。",
                 "consumes": [
                     "application/json"
                 ],
@@ -2362,7 +2574,7 @@ const docTemplate = `{
             }
         },
         "/api/messages/record": {
-            "post": {
+            "get": {
                 "description": "获取当前用户与指定用户的消息记录",
                 "consumes": [
                     "application/json"
@@ -2383,13 +2595,11 @@ const docTemplate = `{
                         "required": true
                     },
                     {
+                        "type": "integer",
                         "description": "用户ID",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/message_api.MessageRecordRequest"
-                        }
+                        "name": "user_id",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -2488,6 +2698,44 @@ const docTemplate = `{
                         "description": "获取失败",
                         "schema": {
                             "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/news/sources": {
+            "get": {
+                "description": "返回可切换的热搜榜来源，供前端构建资讯来源面板",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "新闻管理"
+                ],
+                "summary": "获取新闻来源列表",
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/new_api.NewsSource"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -2592,7 +2840,7 @@ const docTemplate = `{
         },
         "/api/settings/{name}": {
             "get": {
-                "description": "根据配置名称获取对应的配置信息",
+                "description": "根据配置名称获取对应的系统配置。当前支持 site、email、qq、qiniu、jwt。",
                 "consumes": [
                     "application/json"
                 ],
@@ -2621,7 +2869,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -2635,11 +2883,23 @@ const docTemplate = `{
                                 }
                             ]
                         }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "没有对应的配置信息",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
                     }
                 }
             },
             "put": {
-                "description": "根据配置名称更新对应的配置信息。site: {title,subtitle,keywords...}; email: {smtp_host,smtp_port...}; qq: {app_id,app_key...}; qiniu: {access_key,secret_key...}; jwt: {sign_key,expires_time...}",
+                "description": "根据配置名称更新对应的配置信息。site、email、qq、qiniu、jwt 分别绑定到不同结构体。",
                 "consumes": [
                     "application/json"
                 ],
@@ -2677,7 +2937,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "更新成功",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "没有对应的配置信息",
                         "schema": {
                             "$ref": "#/definitions/res.Response"
                         }
@@ -3650,6 +3922,52 @@ const docTemplate = `{
                 }
             }
         },
+        "article_api.ArticleInsightsResponse": {
+            "type": "object",
+            "properties": {
+                "hot_articles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ArticleModel"
+                    }
+                },
+                "hot_tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/article_api.TagTrend"
+                    }
+                },
+                "latest_articles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ArticleModel"
+                    }
+                },
+                "stats": {
+                    "$ref": "#/definitions/article_api.ArticleInsightsStats"
+                }
+            }
+        },
+        "article_api.ArticleInsightsStats": {
+            "type": "object",
+            "properties": {
+                "article_count": {
+                    "type": "integer"
+                },
+                "collect_total": {
+                    "type": "integer"
+                },
+                "comment_total": {
+                    "type": "integer"
+                },
+                "digg_total": {
+                    "type": "integer"
+                },
+                "look_total": {
+                    "type": "integer"
+                }
+            }
+        },
         "article_api.ArticleRequest": {
             "type": "object",
             "required": [
@@ -3846,6 +4164,58 @@ const docTemplate = `{
                 }
             }
         },
+        "article_api.CollectManageBatchRemoveRequest": {
+            "type": "object",
+            "required": [
+                "items"
+            ],
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/article_api.CollectManageRemoveItem"
+                    }
+                }
+            }
+        },
+        "article_api.CollectManageItem": {
+            "type": "object",
+            "properties": {
+                "article_id": {
+                    "type": "string"
+                },
+                "article_title": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "nick_name": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                },
+                "user_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "article_api.CollectManageRemoveItem": {
+            "type": "object",
+            "required": [
+                "article_id",
+                "user_id"
+            ],
+            "properties": {
+                "article_id": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "article_api.IDListRequest": {
             "type": "object",
             "properties": {
@@ -3854,6 +4224,17 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "article_api.TagTrend": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "tag": {
+                    "type": "string"
                 }
             }
         },
@@ -3972,6 +4353,18 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "chat_group_count": {
+                    "type": "integer"
+                },
+                "collect_total": {
+                    "type": "integer"
+                },
+                "comment_total": {
+                    "type": "integer"
+                },
+                "digg_total": {
+                    "type": "integer"
+                },
+                "look_total": {
                     "type": "integer"
                 },
                 "message_count": {
@@ -4118,6 +4511,9 @@ const docTemplate = `{
                     "description": "切换的时间，单位秒",
                     "type": "integer"
                 },
+                "id": {
+                    "type": "integer"
+                },
                 "image_sort_list": {
                     "description": "具体图片的顺序",
                     "type": "array",
@@ -4170,7 +4566,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
-                    "description": "主键ID",
+                    "description": "主键 ID",
                     "type": "integer"
                 },
                 "path": {
@@ -4192,23 +4588,28 @@ const docTemplate = `{
         "message_api.Message": {
             "type": "object",
             "properties": {
+                "avatar": {
+                    "type": "string"
+                },
                 "content": {
-                    "description": "消息内容",
                     "type": "string"
                 },
                 "created_at": {
-                    "description": "最新的消息时间",
                     "type": "string"
                 },
-                "message_count": {
-                    "description": "消息条数",
+                "latest_sender_user_id": {
                     "type": "integer"
+                },
+                "message_count": {
+                    "type": "integer"
+                },
+                "nick_name": {
+                    "type": "string"
                 },
                 "rev_user_avatar": {
                     "type": "string"
                 },
                 "rev_user_id": {
-                    "description": "接收人id",
                     "type": "integer"
                 },
                 "rev_user_nick_name": {
@@ -4218,20 +4619,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "send_user_id": {
-                    "description": "发送人id",
                     "type": "integer"
                 },
                 "send_user_nick_name": {
                     "type": "string"
-                }
-            }
-        },
-        "message_api.MessageRecordRequest": {
-            "type": "object",
-            "required": [
-                "user_id"
-            ],
-            "properties": {
+                },
+                "unread_count": {
+                    "type": "integer"
+                },
                 "user_id": {
                     "type": "integer"
                 }
@@ -4241,20 +4636,13 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "content",
-                "rev_user_id",
-                "send_user_id"
+                "rev_user_id"
             ],
             "properties": {
                 "content": {
-                    "description": "消息内容",
                     "type": "string"
                 },
                 "rev_user_id": {
-                    "description": "接收人id",
-                    "type": "integer"
-                },
-                "send_user_id": {
-                    "description": "发送人id",
                     "type": "integer"
                 }
             }
@@ -4271,7 +4659,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
-                    "description": "主键ID",
+                    "description": "主键 ID",
                     "type": "integer"
                 },
                 "images": {
@@ -4384,15 +4772,15 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "hash": {
-                    "description": "图片的hash值，用于判断重复图片",
+                    "description": "图片 hash，用于判重",
                     "type": "string"
                 },
                 "id": {
-                    "description": "主键ID",
+                    "description": "主键 ID",
                     "type": "integer"
                 },
                 "image_type": {
-                    "description": "图片的类型， 本地还是七牛",
+                    "description": "图片来源类型：本地或云存储",
                     "allOf": [
                         {
                             "$ref": "#/definitions/ctype.ImageType"
@@ -4404,7 +4792,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "path": {
-                    "description": "图片路径",
+                    "description": "图片访问路径",
                     "type": "string"
                 }
             }
@@ -4413,12 +4801,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "addr": {
+                    "description": "发送者归属地",
                     "type": "string"
                 },
                 "avatar": {
+                    "description": "发送者头像",
                     "type": "string"
                 },
                 "content": {
+                    "description": "消息内容",
                     "type": "string"
                 },
                 "created_at": {
@@ -4426,20 +4817,23 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
-                    "description": "主键ID",
+                    "description": "主键 ID",
                     "type": "integer"
                 },
                 "ip": {
+                    "description": "发送者 IP",
                     "type": "string"
                 },
                 "is_group": {
-                    "description": "是否是群组消息",
+                    "description": "是否为群发消息",
                     "type": "boolean"
                 },
                 "msg_type": {
+                    "description": "消息类型：文本、图片、系统提示等",
                     "type": "integer"
                 },
                 "nick_name": {
+                    "description": "发送者昵称",
                     "type": "string"
                 }
             }
@@ -4476,7 +4870,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "id": {
-                    "description": "主键ID",
+                    "description": "主键 ID",
                     "type": "integer"
                 },
                 "parent_comment_id": {
@@ -4533,15 +4927,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "body": {
-                    "description": "文章内容",
+                    "description": "文章正文分词片段",
                     "type": "string"
                 },
                 "key": {
-                    "description": "文章关联id",
+                    "description": "关联的文章 ID",
                     "type": "string"
                 },
                 "slug": {
-                    "description": "文章分类",
+                    "description": "标题 slug，用于匹配目录和搜索结果",
                     "type": "string"
                 },
                 "title": {
@@ -4554,7 +4948,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "content": {
-                    "description": "消息内容",
+                    "description": "消息正文",
                     "type": "string"
                 },
                 "created_at": {
@@ -4562,18 +4956,18 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
-                    "description": "主键ID",
+                    "description": "主键 ID",
                     "type": "integer"
                 },
                 "is_read": {
-                    "description": "接收方是否查看",
+                    "description": "接收方是否已读",
                     "type": "boolean"
                 },
                 "rev_user_avatar": {
                     "type": "string"
                 },
                 "rev_user_id": {
-                    "description": "接收人id",
+                    "description": "接收人 ID",
                     "type": "integer"
                 },
                 "rev_user_nick_name": {
@@ -4583,7 +4977,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "send_user_id": {
-                    "description": "发送人id",
+                    "description": "发送人 ID",
                     "type": "integer"
                 },
                 "send_user_nick_name": {
@@ -4610,7 +5004,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
-                    "description": "主键ID",
+                    "description": "主键 ID",
                     "type": "integer"
                 },
                 "title": {
@@ -4639,7 +5033,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
-                    "description": "主键ID",
+                    "description": "主键 ID",
                     "type": "integer"
                 },
                 "ip": {
@@ -4684,6 +5078,26 @@ const docTemplate = `{
                 },
                 "user_name": {
                     "description": "用户名",
+                    "type": "string"
+                }
+            }
+        },
+        "new_api.NewsSource": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "icon": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
                     "type": "string"
                 }
             }
@@ -4820,24 +5234,19 @@ const docTemplate = `{
                 "user_name"
             ],
             "properties": {
+                "email": {
+                    "type": "string"
+                },
                 "nick_name": {
-                    "description": "昵称",
                     "type": "string"
                 },
                 "password": {
-                    "description": "密码",
                     "type": "string"
                 },
                 "role": {
-                    "description": "权限  1 管理员  2 普通用户  3 游客",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/ctype.Role"
-                        }
-                    ]
+                    "$ref": "#/definitions/ctype.Role"
                 },
                 "user_name": {
-                    "description": "用户名",
                     "type": "string"
                 }
             }
@@ -4891,11 +5300,11 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "127.0.0.01:8080",
+	Host:             "127.0.0.1:8080",
 	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "gvb_server API文档",
-	Description:      "gvb_server API文档",
+	Title:            "gvb_server API 文档",
+	Description:      "gvb_server 服务端接口文档，覆盖博客、用户、评论、消息、聊天、配置等核心能力。",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

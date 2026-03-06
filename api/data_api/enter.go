@@ -1,4 +1,4 @@
 package data_api
 
-type DataApi struct {
-}
+// DataApi 聚合数据统计相关的 HTTP 处理函数。
+type DataApi struct{}

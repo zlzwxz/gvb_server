@@ -1,0 +1,1 @@
+@oem45.inf,%nvidia_dev.2560.3aa6.17aa%;NVIDIA GeForce RTX 3060 Laptop GPU

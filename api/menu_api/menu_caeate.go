@@ -7,10 +7,12 @@ import (
 	"gvb-server/models/res"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // ImageSort 定义图片排序结构
 // @Description 图片ID和排序值的组合
+// 这里单独拆出来，是为了让前端可以明确告诉后端“第几张图排第几位”。
 type ImageSort struct {
 	ImageID uint `json:"image_id"`
 	Sort    int  `json:"sort"`
@@ -18,7 +20,9 @@ type ImageSort struct {
 
 // MenuRequest 定义菜单请求结构体
 // @Description 菜单操作请求参数
+// ID 只在更新时使用，创建时保持 0 即可。
 type MenuRequest struct {
+	ID            uint        `json:"id" structs:"-"`
 	Title         string      `json:"title" binding:"required" msg:"请完善菜单名称" structs:"title"`
 	Path          string      `json:"path" binding:"required" msg:"请完善菜单路径" structs:"path"`
 	Slogan        string      `json:"slogan" structs:"slogan"`
@@ -40,20 +44,26 @@ type MenuRequest struct {
 // @Router /api/menus [post]
 func (MenuApi) MenuCreateView(c *gin.Context) {
 	var cr MenuRequest
-	err := c.ShouldBindJSON(&cr)
-	if err != nil {
+	if err := c.ShouldBindJSON(&cr); err != nil {
 		res.FailWithError(err, &cr, c)
 		return
 	}
 
-	// 重复值判断
-	var mennulist models.MenuModel
-	count := global.DB.Find(&mennulist, "title = ? or path = ? ", cr.Title, cr.Path).RowsAffected
-	if count > 0 {
+	normalizeMenuRequest(&cr)
+
+	var duplicateCount int64
+	if err := global.DB.Model(&models.MenuModel{}).
+		Where("title = ? OR path = ?", cr.Title, cr.Path).
+		Count(&duplicateCount).Error; err != nil {
+		global.Log.Error(err)
+		res.FailWithMessage("菜单添加失败", c)
+		return
+	}
+	if duplicateCount > 0 {
 		res.FailWithMessage("菜单标题或者路径重复，添加失败", c)
 		return
 	}
-	// 创建banner数据入库
+
 	menuModel := models.MenuModel{
 		Title:        cr.Title,
 		Path:         cr.Path,
@@ -64,34 +74,24 @@ func (MenuApi) MenuCreateView(c *gin.Context) {
 		Sort:         cr.Sort,
 	}
 
-	err = global.DB.Create(&menuModel).Error
+	// 菜单主表和轮播关联表必须一起成功，才不会出现“菜单建好了但轮播没挂上”的半成功状态。
+	err := global.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&menuModel).Error; err != nil {
+			return err
+		}
 
+		menuBannerList := buildMenuBannerModels(menuModel.ID, cr.ImageSortList)
+		if len(menuBannerList) == 0 {
+			return nil
+		}
+
+		return tx.Create(&menuBannerList).Error
+	})
 	if err != nil {
 		global.Log.Error(err)
 		res.FailWithMessage("菜单添加失败", c)
 		return
 	}
-	if len(cr.ImageSortList) == 0 {
-		res.OkWithMessage("菜单添加成功", c)
-		return
-	}
 
-	var menuBannerList []models.MenuBannerModel
-
-	for _, sort := range cr.ImageSortList {
-		// 这里也得判断image_id是否真正有这张图片
-		menuBannerList = append(menuBannerList, models.MenuBannerModel{
-			MenuID:   menuModel.ID,
-			BannerID: sort.ImageID,
-			Sort:     sort.Sort,
-		})
-	}
-	// 给第三张表入库
-	err = global.DB.Create(&menuBannerList).Error
-	if err != nil {
-		global.Log.Error(err)
-		res.FailWithMessage("菜单图片关联失败", c)
-		return
-	}
 	res.OkWithMessage("菜单添加成功", c)
 }

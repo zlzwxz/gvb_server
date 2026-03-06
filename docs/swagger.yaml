@@ -20,6 +20,36 @@ definitions:
     - is_show
     - title
     type: object
+  article_api.ArticleInsightsResponse:
+    properties:
+      hot_articles:
+        items:
+          $ref: '#/definitions/models.ArticleModel'
+        type: array
+      hot_tags:
+        items:
+          $ref: '#/definitions/article_api.TagTrend'
+        type: array
+      latest_articles:
+        items:
+          $ref: '#/definitions/models.ArticleModel'
+        type: array
+      stats:
+        $ref: '#/definitions/article_api.ArticleInsightsStats'
+    type: object
+  article_api.ArticleInsightsStats:
+    properties:
+      article_count:
+        type: integer
+      collect_total:
+        type: integer
+      comment_total:
+        type: integer
+      digg_total:
+        type: integer
+      look_total:
+        type: integer
+    type: object
   article_api.ArticleRequest:
     properties:
       abstract:
@@ -161,12 +191,53 @@ definitions:
         description: 用户昵称
         type: string
     type: object
+  article_api.CollectManageBatchRemoveRequest:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/article_api.CollectManageRemoveItem'
+        type: array
+    required:
+    - items
+    type: object
+  article_api.CollectManageItem:
+    properties:
+      article_id:
+        type: string
+      article_title:
+        type: string
+      created_at:
+        type: string
+      nick_name:
+        type: string
+      user_id:
+        type: integer
+      user_name:
+        type: string
+    type: object
+  article_api.CollectManageRemoveItem:
+    properties:
+      article_id:
+        type: string
+      user_id:
+        type: integer
+    required:
+    - article_id
+    - user_id
+    type: object
   article_api.IDListRequest:
     properties:
       id_list:
         items:
           type: string
         type: array
+    type: object
+  article_api.TagTrend:
+    properties:
+      count:
+        type: integer
+      tag:
+        type: string
     type: object
   article_api.TagsResponse:
     properties:
@@ -253,6 +324,14 @@ definitions:
       article_count:
         type: integer
       chat_group_count:
+        type: integer
+      collect_total:
+        type: integer
+      comment_total:
+        type: integer
+      digg_total:
+        type: integer
+      look_total:
         type: integer
       message_count:
         type: integer
@@ -348,6 +427,8 @@ definitions:
       banner_time:
         description: 切换的时间，单位秒
         type: integer
+      id:
+        type: integer
       image_sort_list:
         description: 具体图片的顺序
         items:
@@ -389,7 +470,7 @@ definitions:
         description: 创建时间
         type: string
       id:
-        description: 主键ID
+        description: 主键 ID
         type: integer
       path:
         type: string
@@ -404,52 +485,44 @@ definitions:
     type: object
   message_api.Message:
     properties:
+      avatar:
+        type: string
       content:
-        description: 消息内容
         type: string
       created_at:
-        description: 最新的消息时间
         type: string
-      message_count:
-        description: 消息条数
+      latest_sender_user_id:
         type: integer
+      message_count:
+        type: integer
+      nick_name:
+        type: string
       rev_user_avatar:
         type: string
       rev_user_id:
-        description: 接收人id
         type: integer
       rev_user_nick_name:
         type: string
       send_user_avatar:
         type: string
       send_user_id:
-        description: 发送人id
         type: integer
       send_user_nick_name:
         type: string
-    type: object
-  message_api.MessageRecordRequest:
-    properties:
+      unread_count:
+        type: integer
       user_id:
         type: integer
-    required:
-    - user_id
     type: object
   message_api.MessageRequest:
     properties:
       content:
-        description: 消息内容
         type: string
       rev_user_id:
-        description: 接收人id
-        type: integer
-      send_user_id:
-        description: 发送人id
         type: integer
     required:
     - content
     - rev_user_id
-    - send_user_id
     type: object
   models.AdvertModel:
     properties:
@@ -460,7 +533,7 @@ definitions:
         description: 跳转链接
         type: string
       id:
-        description: 主键ID
+        description: 主键 ID
         type: integer
       images:
         description: 图片
@@ -543,44 +616,50 @@ definitions:
         description: 创建时间
         type: string
       hash:
-        description: 图片的hash值，用于判断重复图片
+        description: 图片 hash，用于判重
         type: string
       id:
-        description: 主键ID
+        description: 主键 ID
         type: integer
       image_type:
         allOf:
         - $ref: '#/definitions/ctype.ImageType'
-        description: 图片的类型， 本地还是七牛
+        description: 图片来源类型：本地或云存储
       name:
         description: 图片名称
         type: string
       path:
-        description: 图片路径
+        description: 图片访问路径
         type: string
     type: object
   models.ChatModel:
     properties:
       addr:
+        description: 发送者归属地
         type: string
       avatar:
+        description: 发送者头像
         type: string
       content:
+        description: 消息内容
         type: string
       created_at:
         description: 创建时间
         type: string
       id:
-        description: 主键ID
+        description: 主键 ID
         type: integer
       ip:
+        description: 发送者 IP
         type: string
       is_group:
-        description: 是否是群组消息
+        description: 是否为群发消息
         type: boolean
       msg_type:
+        description: 消息类型：文本、图片、系统提示等
         type: integer
       nick_name:
+        description: 发送者昵称
         type: string
     type: object
   models.CommentModel:
@@ -605,7 +684,7 @@ definitions:
         description: 点赞数
         type: integer
       id:
-        description: 主键ID
+        description: 主键 ID
         type: integer
       parent_comment_id:
         description: 父评论id
@@ -642,13 +721,13 @@ definitions:
   models.FullTextModel:
     properties:
       body:
-        description: 文章内容
+        description: 文章正文分词片段
         type: string
       key:
-        description: 文章关联id
+        description: 关联的文章 ID
         type: string
       slug:
-        description: 文章分类
+        description: 标题 slug，用于匹配目录和搜索结果
         type: string
       title:
         description: 文章标题
@@ -657,28 +736,28 @@ definitions:
   models.MessageModel:
     properties:
       content:
-        description: 消息内容
+        description: 消息正文
         type: string
       created_at:
         description: 创建时间
         type: string
       id:
-        description: 主键ID
+        description: 主键 ID
         type: integer
       is_read:
-        description: 接收方是否查看
+        description: 接收方是否已读
         type: boolean
       rev_user_avatar:
         type: string
       rev_user_id:
-        description: 接收人id
+        description: 接收人 ID
         type: integer
       rev_user_nick_name:
         type: string
       send_user_avatar:
         type: string
       send_user_id:
-        description: 发送人id
+        description: 发送人 ID
         type: integer
       send_user_nick_name:
         type: string
@@ -696,7 +775,7 @@ definitions:
         description: 创建时间
         type: string
       id:
-        description: 主键ID
+        description: 主键 ID
         type: integer
       title:
         description: 标签的名称
@@ -717,7 +796,7 @@ definitions:
         description: 邮箱
         type: string
       id:
-        description: 主键ID
+        description: 主键 ID
         type: integer
       ip:
         description: ip地址
@@ -747,6 +826,19 @@ definitions:
         type: string
       user_name:
         description: 用户名
+        type: string
+    type: object
+  new_api.NewsSource:
+    properties:
+      category:
+        type: string
+      icon:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      type:
         type: string
     type: object
   redis_ser.NewData:
@@ -832,18 +924,15 @@ definitions:
     type: object
   user_api.UserCreateRequest:
     properties:
+      email:
+        type: string
       nick_name:
-        description: 昵称
         type: string
       password:
-        description: 密码
         type: string
       role:
-        allOf:
-        - $ref: '#/definitions/ctype.Role'
-        description: 权限  1 管理员  2 普通用户  3 游客
+        $ref: '#/definitions/ctype.Role'
       user_name:
-        description: 用户名
         type: string
     required:
     - nick_name
@@ -879,11 +968,11 @@ definitions:
       sign:
         type: string
     type: object
-host: 127.0.0.01:8080
+host: 127.0.0.1:8080
 info:
   contact: {}
-  description: gvb_server API文档
-  title: gvb_server API文档
+  description: gvb_server 服务端接口文档，覆盖博客、用户、评论、消息、聊天、配置等核心能力。
+  title: gvb_server API 文档
   version: "1.0"
 paths:
   /api/adverts:
@@ -914,6 +1003,9 @@ paths:
     get:
       description: 广告列表
       parameters:
+      - in: query
+        name: id
+        type: string
       - in: query
         name: key
         type: string
@@ -1320,6 +1412,90 @@ paths:
       summary: 批量取消收藏文章
       tags:
       - 文章管理
+  /api/articles/collects/manage:
+    delete:
+      description: 批量取消收藏；管理员可取消任意用户收藏，普通用户仅可取消自己的收藏
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 收藏记录列表
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/article_api.CollectManageBatchRemoveRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 取消成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  properties:
+                    removed:
+                      type: integer
+                  type: object
+              type: object
+      summary: 后台批量取消收藏
+      tags:
+      - 文章管理
+    get:
+      description: 获取收藏列表；管理员可通过 scope=all 查看全站，普通用户仅可查看自己的收藏
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 页码，默认1
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量，默认20
+        in: query
+        name: limit
+        type: integer
+      - description: all 或 me
+        in: query
+        name: scope
+        type: string
+      - description: 用户ID（仅 scope=all 且管理员可用）
+        in: query
+        name: user_id
+        type: integer
+      - description: 文章ID
+        in: query
+        name: article_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  properties:
+                    count:
+                      format: int64
+                      type: integer
+                    list:
+                      items:
+                        $ref: '#/definitions/article_api.CollectManageItem'
+                      type: array
+                  type: object
+              type: object
+      summary: 后台收藏管理列表
+      tags:
+      - 文章管理
   /api/articles/content/{id}:
     get:
       description: 根据文章ID获取文章正文内容
@@ -1376,6 +1552,35 @@ paths:
           schema:
             $ref: '#/definitions/res.Response'
       summary: 根据标题获取文章详情
+      tags:
+      - 文章管理
+  /api/articles/insights:
+    get:
+      consumes:
+      - application/json
+      description: 返回统计数据、热门文章、最新文章、热门标签
+      parameters:
+      - description: 热门文章数量，默认6
+        in: query
+        name: hot_size
+        type: integer
+      - description: 最新文章数量，默认8
+        in: query
+        name: latest_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/article_api.ArticleInsightsResponse'
+              type: object
+      summary: 获取首页洞察数据
       tags:
       - 文章管理
   /api/articles/search:
@@ -1456,6 +1661,25 @@ paths:
       summary: 获取文章标签列表
       tags:
       - 文章管理
+  /api/chat_groups_records:
+    get:
+      consumes:
+      - application/json
+      description: 建立 websocket 连接并加入公共聊天室，后续消息通过 websocket 双向通信。
+      produces:
+      - application/json
+      responses:
+        "101":
+          description: Switching Protocols
+          schema:
+            type: string
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 进入聊天室
+      tags:
+      - 聊天管理
   /api/chats:
     get:
       consumes:
@@ -1852,7 +2076,7 @@ paths:
     post:
       consumes:
       - multipart/form-data
-      description: 上传图片文件，支持jpg、png、gif等格式，有大小限制
+      description: 上传图片文件，支持 jpg、png、gif 等格式，并校验大小、后缀和重复文件。
       parameters:
       - description: token
         in: header
@@ -2072,7 +2296,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: 获取所有菜单信息及关联的轮播图，按排序降序排列
+      description: 获取所有菜单信息及关联的轮播图，按排序升序排列，便于前端直接渲染
       produces:
       - application/json
       responses:
@@ -2116,6 +2340,32 @@ paths:
       summary: 创建菜单
       tags:
       - 菜单管理
+    put:
+      consumes:
+      - application/json
+      description: 按请求体中的菜单ID更新菜单信息，包括轮播图关联
+      parameters:
+      - description: 菜单更新参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/menu_api.MenuRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 更新成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                msg:
+                  type: string
+              type: object
+      summary: 更新菜单
+      tags:
+      - 菜单管理
   /api/menus/{id}:
     get:
       consumes:
@@ -2140,37 +2390,6 @@ paths:
                   $ref: '#/definitions/menu_api.MenuResponse'
               type: object
       summary: 获取菜单详情
-      tags:
-      - 菜单管理
-    put:
-      consumes:
-      - application/json
-      description: 更新指定ID的菜单信息，包括轮播图关联
-      parameters:
-      - description: 菜单ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: 菜单更新参数
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/menu_api.MenuRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 更新成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/res.Response'
-            - properties:
-                msg:
-                  type: string
-              type: object
-      summary: 更新菜单
       tags:
       - 菜单管理
   /api/menus/names:
@@ -2199,7 +2418,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: 获取当前用户的消息列表，按消息组分组显示
+      description: 获取当前用户的消息列表，按对话维度分组展示最近一条消息、总消息数和未读数。
       parameters:
       - description: token
         in: header
@@ -2321,7 +2540,7 @@ paths:
       tags:
       - 消息管理
   /api/messages/record:
-    post:
+    get:
       consumes:
       - application/json
       description: 获取当前用户与指定用户的消息记录
@@ -2332,11 +2551,10 @@ paths:
         required: true
         type: string
       - description: 用户ID
-        in: body
-        name: data
+        in: query
+        name: user_id
         required: true
-        schema:
-          $ref: '#/definitions/message_api.MessageRecordRequest'
+        type: integer
       produces:
       - application/json
       responses:
@@ -2401,6 +2619,28 @@ paths:
       summary: 获取新闻列表
       tags:
       - 新闻管理
+  /api/news/sources:
+    get:
+      consumes:
+      - application/json
+      description: 返回可切换的热搜榜来源，供前端构建资讯来源面板
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/new_api.NewsSource'
+                  type: array
+              type: object
+      summary: 获取新闻来源列表
+      tags:
+      - 新闻管理
   /api/qq_login:
     post:
       consumes:
@@ -2463,7 +2703,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: 根据配置名称获取对应的配置信息
+      description: 根据配置名称获取对应的系统配置。当前支持 site、email、qq、qiniu、jwt。
       parameters:
       - description: 配置名称
         enum:
@@ -2480,21 +2720,28 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: 获取成功
           schema:
             allOf:
             - $ref: '#/definitions/res.Response'
             - properties:
                 data: {}
               type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "404":
+          description: 没有对应的配置信息
+          schema:
+            $ref: '#/definitions/res.Response'
       summary: 获取配置信息
       tags:
       - 配置管理
     put:
       consumes:
       - application/json
-      description: '根据配置名称更新对应的配置信息。site: {title,subtitle,keywords...}; email: {smtp_host,smtp_port...};
-        qq: {app_id,app_key...}; qiniu: {access_key,secret_key...}; jwt: {sign_key,expires_time...}'
+      description: 根据配置名称更新对应的配置信息。site、email、qq、qiniu、jwt 分别绑定到不同结构体。
       parameters:
       - description: 配置名称
         enum:
@@ -2517,7 +2764,15 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: 更新成功
+          schema:
+            $ref: '#/definitions/res.Response'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "404":
+          description: 没有对应的配置信息
           schema:
             $ref: '#/definitions/res.Response'
       summary: 更新配置信息

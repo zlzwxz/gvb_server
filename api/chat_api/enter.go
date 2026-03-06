@@ -1,4 +1,4 @@
 package chat_api
 
-type ChatApi struct {
-}
+// ChatApi 聚合聊天室和聊天记录相关的 HTTP 处理函数。
+type ChatApi struct{}

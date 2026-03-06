@@ -34,6 +34,10 @@ func (ArticleApi) ArticleCollCreateView(c *gin.Context) {
 		res.FailWithMessage("文章不存在", c)
 		return
 	}
+	if !canViewArticle(model, claims) {
+		res.FailWithMessage("该文章当前不可收藏", c)
+		return
+	}
 
 	var coll models.UserCollectModel
 	err = global.DB.Take(&coll, "user_id = ? and article_id = ?", claims.UserID, cr.ID).Error
@@ -46,10 +50,10 @@ func (ArticleApi) ArticleCollCreateView(c *gin.Context) {
 		})
 		// 给文章的收藏数 +1
 		num = 1
+	} else {
+		// 取消收藏
+		global.DB.Delete(&coll)
 	}
-	// 取消收藏
-	// 文章数 -1
-	global.DB.Delete(&coll)
 
 	// 更新文章收藏数
 	err = es_ser.ArticleUpdate(cr.ID, map[string]any{

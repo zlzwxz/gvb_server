@@ -7,6 +7,7 @@ import (
 	"gvb-server/models"
 	"gvb-server/models/res"
 	"gvb-server/service/es_ser"
+	"gvb-server/utils/jwts"
 
 	"github.com/gin-gonic/gin"
 	"github.com/olivere/elastic/v7"
@@ -38,8 +39,26 @@ func (ArticleApi) ArticleRemoveView(c *gin.Context) {
 		return
 	}
 
-	bulkService := global.ESClient.Bulk().Index(models.ArticleModel{}.Index()).Refresh("true")
+	_claims, _ := c.Get("claims")
+	claims := _claims.(*jwts.CustomClaims)
+
+	allowIDList := make([]string, 0, len(cr.IDList))
 	for _, id := range cr.IDList {
+		article, detailErr := es_ser.CommDetail(id)
+		if detailErr != nil {
+			continue
+		}
+		if canManageArticle(article, claims) {
+			allowIDList = append(allowIDList, id)
+		}
+	}
+	if len(allowIDList) == 0 {
+		res.FailWithMessage("没有可删除的文章或权限不足", c)
+		return
+	}
+
+	bulkService := global.ESClient.Bulk().Index(models.ArticleModel{}.Index()).Refresh("true")
+	for _, id := range allowIDList {
 		req := elastic.NewBulkDeleteRequest().Id(id)
 		//同步删除全文搜索索引数据
 		go es_ser.DeleteFullTextByArticleID(id)

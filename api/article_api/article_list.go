@@ -5,8 +5,7 @@ import (
 	"gvb-server/models"
 	"gvb-server/models/res"
 	"gvb-server/service/es_ser"
-	"gvb-server/service/redis_ser"
-	"gvb-server/utils/jwts"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/liu-cn/json-filter/filter"
@@ -16,8 +15,11 @@ import (
 // ArticleSearchRequest 文章搜索请求参数
 type ArticleSearchRequest struct {
 	models.PageInfo
-	Tag    string `json:"tag" form:"tag" swag:"description:标签"`
-	IsUser bool   `json:"is_user" form:"is_user" swag:"description:是否只显示当前用户的文章"` // 根据这个参数判断是否显示我收藏的文章列表
+	Tag          string `json:"tag" form:"tag" swag:"description:标签"`
+	IsUser       bool   `json:"is_user" form:"is_user" swag:"description:是否只显示当前用户的文章"` // 根据这个参数判断是否显示我收藏的文章列表
+	ReviewStatus int    `json:"review_status" form:"review_status" swag:"description:审核状态筛选"`
+	ReviewScope  string `json:"review_scope" form:"review_scope" swag:"description:审核视角，all代表管理员查看全量"`
+	Category     string `json:"category" form:"category" swag:"description:分类筛选"`
 }
 
 // ArticleListView 获取文章列表
@@ -43,13 +45,28 @@ func (ArticleApi) ArticleListView(c *gin.Context) {
 		return
 	}
 	boolSearch := elastic.NewBoolQuery()
-
+	claims := optionalClaims(c)
+	isAdminUser := isAdmin(claims)
 	if cr.IsUser {
-		token := c.GetHeader("token")
-		claims, err := jwts.ParseToken(token)
-		if err == nil && !redis_ser.CheckLogout(token) {
-			boolSearch.Must(elastic.NewTermsQuery("user_id", claims.UserID))
+		if claims == nil {
+			res.FailWithMessage("请先登录", c)
+			return
 		}
+		boolSearch.Must(elastic.NewTermQuery("user_id", claims.UserID))
+	} else {
+		// 非“我的文章”列表默认只展示已通过文章；管理员可显式查看全量
+		if !(isAdminUser && strings.EqualFold(cr.ReviewScope, "all")) {
+			boolSearch.Must(publicVisibleQuery())
+		}
+	}
+
+	if cr.ReviewStatus != 0 {
+		if isAdminUser || cr.IsUser {
+			boolSearch.Must(elastic.NewTermQuery("review_status", cr.ReviewStatus))
+		}
+	}
+	if cr.Category != "" {
+		boolSearch.Must(elastic.NewTermQuery("category", cr.Category))
 	}
 
 	list, count, err := es_ser.CommList(es_ser.Option{

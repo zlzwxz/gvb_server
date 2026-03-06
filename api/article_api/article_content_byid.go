@@ -1,12 +1,9 @@
 package article_api
 
 import (
-	"context"
-	"encoding/json"
-	"fmt"
-	"gvb-server/global"
 	"gvb-server/models"
 	"gvb-server/models/res"
+	"gvb-server/service/es_ser"
 	"gvb-server/service/redis_ser"
 
 	"github.com/gin-gonic/gin"
@@ -21,7 +18,6 @@ import (
 // @Produce json
 // @Success 200 {object} res.Response{data=string}
 func (ArticleApi) ArticleContentByIDView(c *gin.Context) {
-	fmt.Println("1232")
 	//根据文章id获取文章正文
 	var cr models.ESIDRequest
 	err := c.ShouldBindUri(&cr)
@@ -29,20 +25,15 @@ func (ArticleApi) ArticleContentByIDView(c *gin.Context) {
 		res.FailWithCode(res.ArgumentError, c)
 		return
 	}
-	fmt.Println(cr.ID, "1232")
-	redis_ser.NewArticleLook().Set(cr.ID)
-	result, err := global.ESClient.Get().
-		Index(models.ArticleModel{}.Index()).
-		Id(cr.ID).
-		Do(context.Background())
+	article, err := es_ser.CommDetail(cr.ID)
 	if err != nil {
 		res.FailWithMessage("查询失败", c)
 		return
 	}
-	var model models.ArticleModel
-	err = json.Unmarshal(result.Source, &model)
-	if err != nil {
+	if !canViewArticle(article, optionalClaims(c)) {
+		res.FailWithMessage("文章审核中或已驳回", c)
 		return
 	}
-	res.OkWithData(model.Content, c)
+	redis_ser.NewArticleLook().Set(cr.ID)
+	res.OkWithData(article.Content, c)
 }

@@ -2,6 +2,7 @@ package routers
 
 import "gvb-server/api"
 
+// DataRouter 注册统计看板相关路由。
 func (router RouterGroup) DataRouter() {
 	dataApp := api.ApiGroupApp.DataApi
 	router.GET("data_login", dataApp.SevenLoginView)

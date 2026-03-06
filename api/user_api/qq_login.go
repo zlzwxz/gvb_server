@@ -2,18 +2,21 @@ package user_api
 
 import (
 	"fmt"
+	"strings"
+
+	"github.com/gin-gonic/gin"
+
 	"gvb-server/global"
 	"gvb-server/models"
 	"gvb-server/models/ctype"
 	"gvb-server/models/res"
 	"gvb-server/plugins/log_stash"
 	"gvb-server/plugins/qq"
+	"gvb-server/service/user_ser"
 	"gvb-server/utils"
 	"gvb-server/utils/jwts"
 	"gvb-server/utils/pwd"
 	"gvb-server/utils/random"
-
-	"github.com/gin-gonic/gin"
 )
 
 // QQLoginView QQ登录
@@ -39,22 +42,22 @@ func (UserApi) QQLoginView(c *gin.Context) {
 		return
 	}
 	openID := qqInfo.OpenID
-	// 根据openID判断用户是否存在
 	var user models.UserModel
-	//拿到ip地址
 	ip, addr := utils.GetAddrByGin(c)
-	//添加日志记录
 	log := log_stash.NewLogByGin(c)
 	err = global.DB.Take(&user, "token = ?", openID).Error
 	if err != nil {
-		// 不存在，就注册
 		hashPwd := pwd.HashPwd(random.RandString(16))
+		nickName := strings.TrimSpace(qqInfo.Nickname)
+		if nickName == "" {
+			nickName = "QQ用户" + random.RandString(4)
+		}
 		user = models.UserModel{
-			NickName:   qqInfo.Nickname,
-			UserName:   openID,  // qq登录，邮箱+密码
-			Password:   hashPwd, // 随机生成16位密码
-			Avatar:     qqInfo.Avatar,
-			Addr:       addr, // 根据ip算地址
+			NickName:   nickName,
+			UserName:   user_ser.GenerateUniqueUserName("qq"),
+			Password:   hashPwd,
+			Avatar:     user_ser.RandomAvatar(),
+			Addr:       addr,
 			Token:      openID,
 			IP:         ip,
 			Role:       ctype.PermissionUser,
@@ -63,14 +66,12 @@ func (UserApi) QQLoginView(c *gin.Context) {
 		err = global.DB.Create(&user).Error
 		if err != nil {
 			global.Log.Error(err)
-
 			log.Info(fmt.Sprintf("用户名%v 注册失败", openID))
 			res.FailWithMessage("注册失败", c)
 			return
 		}
-
 	}
-	// 登录操作
+
 	token, err := jwts.GenToken(jwts.JwtPayLoad{
 		NickName: user.NickName,
 		Role:     int(user.Role),
@@ -82,7 +83,6 @@ func (UserApi) QQLoginView(c *gin.Context) {
 		return
 	}
 
-	//登录成功写入登录数据
 	global.DB.Create(models.LoginDataModel{
 		UserID:    user.ID,
 		IP:        ip,

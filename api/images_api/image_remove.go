@@ -6,6 +6,7 @@ import (
 	"gvb-server/global"
 	"gvb-server/models"
 	"gvb-server/models/res"
+	"gvb-server/utils/jwts"
 )
 
 // ImageRemoveView 删除图片
@@ -18,6 +19,13 @@ import (
 // @Success 200 {object} res.Response{}
 // @Router /api/images [delete]
 func (ImagesApi) ImageRemoveView(c *gin.Context) {
+	_claims, ok := c.Get("claims")
+	if !ok {
+		res.FailWithMessage("未登录", c)
+		return
+	}
+	claims := _claims.(*jwts.CustomClaims)
+
 	var cr models.RemoveRequest
 	err := c.ShouldBindJSON(&cr)
 	if err != nil {
@@ -31,7 +39,24 @@ func (ImagesApi) ImageRemoveView(c *gin.Context) {
 		res.FailWithMessage("文件不存在", c)
 		return
 	}
+
+	if !isImageAdmin(claims) {
+		ownImageList := make([]models.BannerModel, 0, len(imageList))
+		for _, image := range imageList {
+			if canOperateImage(claims, image) {
+				ownImageList = append(ownImageList, image)
+			}
+		}
+		if len(ownImageList) == 0 {
+			res.FailWithMessage("只能删除自己上传的图片", c)
+			return
+		}
+		global.DB.Delete(&ownImageList)
+		res.OkWithMessage(fmt.Sprintf("共删除 %d 张图片", len(ownImageList)), c)
+		return
+	}
+
 	global.DB.Delete(&imageList)
-	res.OkWithMessage(fmt.Sprintf("共删除 %d 张图片", count), c)
+	res.OkWithMessage(fmt.Sprintf("共删除 %d 张图片", len(imageList)), c)
 
 }

@@ -5,6 +5,7 @@ import (
 	"gvb-server/global"
 	"gvb-server/models"
 	"gvb-server/models/res"
+	"gvb-server/utils/jwts"
 )
 
 type ImageUpdateRequest struct {
@@ -22,6 +23,13 @@ type ImageUpdateRequest struct {
 // @Success 200 {object} res.Response{message=string}
 // @Router /api/images [put]
 func (ImagesApi) ImageUpdateView(c *gin.Context) {
+	_claims, ok := c.Get("claims")
+	if !ok {
+		res.FailWithMessage("未登录", c)
+		return
+	}
+	claims := _claims.(*jwts.CustomClaims)
+
 	var cr ImageUpdateRequest
 	err := c.ShouldBindJSON(&cr)
 	if err != nil {
@@ -32,6 +40,10 @@ func (ImagesApi) ImageUpdateView(c *gin.Context) {
 	err = global.DB.Take(&imageModel, cr.ID).Error
 	if err != nil {
 		res.FailWithMessage("文件不存在", c)
+		return
+	}
+	if !canOperateImage(claims, imageModel) {
+		res.FailWithMessage("只能修改自己上传的图片", c)
 		return
 	}
 	err = global.DB.Model(&imageModel).Update("name", cr.Name).Error

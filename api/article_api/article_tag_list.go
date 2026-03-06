@@ -62,6 +62,7 @@ func (ArticleApi) ArticleTagListView(c *gin.Context) {
 
 	result, err := global.ESClient.
 		Search(models.ArticleModel{}.Index()).
+		Query(publicVisibleQuery()).
 		Aggregation("tags", elastic.NewCardinalityAggregation().Field("tags")).
 		Size(0).
 		Do(context.Background())
@@ -73,7 +74,7 @@ func (ArticleApi) ArticleTagListView(c *gin.Context) {
 	agg.SubAggregation("articles", elastic.NewTermsAggregation().Field("keyword"))
 	agg.SubAggregation("page", elastic.NewBucketSortAggregation().From(offset).Size(cr.Limit))
 
-	query := elastic.NewBoolQuery()
+	query := publicVisibleQuery()
 
 	result, err = global.ESClient.
 		Search(models.ArticleModel{}.Index()).

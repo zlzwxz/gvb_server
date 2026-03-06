@@ -7,6 +7,7 @@ import (
 	"gvb-server/api/comment_api"
 	"gvb-server/api/data_api"
 	"gvb-server/api/digg_api"
+	"gvb-server/api/file_api"
 	"gvb-server/api/images_api"
 	"gvb-server/api/log_api"
 	"gvb-server/api/menu_api"
@@ -17,6 +18,8 @@ import (
 	"gvb-server/api/user_api"
 )
 
+// ApiGroup 统一收口所有 API handler 分组。
+// 路由层只需要依赖这个聚合对象，就能按模块拿到对应的控制器。
 type ApiGroup struct {
 	SettingsApi settings_api.SettingsApi
 	ImagesApi   images_api.ImagesApi
@@ -32,7 +35,8 @@ type ApiGroup struct {
 	ChatApi     chat_api.ChatApi
 	LogApi      log_api.LogApi
 	DataApi     data_api.DataApi
+	FileApi     file_api.FileApi
 }
 
-// 实例化对象
+// ApiGroupApp 是全局单例，路由注册时直接复用这一份 handler 聚合对象。
 var ApiGroupApp = new(ApiGroup)

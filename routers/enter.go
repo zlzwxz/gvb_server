@@ -1,35 +1,36 @@
 package routers
 
 import (
-	"gvb-server/global"
 	"net/http"
+
+	"gvb-server/global"
+	"gvb-server/middleware"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
-	gs "github.com/swaggo/gin-swagger" //swagger包
+	gs "github.com/swaggo/gin-swagger"
 )
 
+// RouterGroup 把 *gin.RouterGroup 包一层，方便在方法上按业务模块拆分路由注册逻辑。
 type RouterGroup struct {
 	*gin.RouterGroup
 }
 
-// 路由初始化
+// InitRouter 初始化整个 Gin 引擎。
+// 这里集中做三件事：设置运行模式、挂公共中间能力、注册所有业务路由。
 func InitRouter() *gin.Engine {
 	gin.SetMode(global.Config.System.Env)
 
 	router := gin.Default()
-	//启动swaggerweb网页路由
 	router.GET("/swagger/*any", gs.WrapHandler(swaggerFiles.Handler))
-	//静态文件路由
 	router.StaticFS("uploads", http.Dir("uploads"))
-	//测试qq登录
-	//router.GET("/login", user_api.UserApi{}.QQLoginView)
+
 	apiRouterGroup := router.Group("/api")
-	routerGroupApp := RouterGroup{
-		apiRouterGroup,
-	}
+	apiRouterGroup.Use(middleware.OperationAudit())
+	routerGroupApp := RouterGroup{RouterGroup: apiRouterGroup}
 	routerGroupApp.SettinsRouter()
 	routerGroupApp.ImageRouter()
+	routerGroupApp.FileRouter()
 	routerGroupApp.AdvertRouter()
 	routerGroupApp.MenuRouter()
 	routerGroupApp.UserRouter()

@@ -25,6 +25,8 @@ func Makemigrations() {
 			&models.MenuBannerModel{},
 			&models.FadeBackModel{},
 			&models.LoginDataModel{},
+			&models.UserCheckInModel{},
+			&models.ArticleFileModel{},
 			&models.ChatModel{},
 			&log_stash.LogStashModel{},
 		)

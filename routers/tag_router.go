@@ -2,6 +2,7 @@ package routers
 
 import "gvb-server/api"
 
+// TagRouter 注册标签相关路由。
 func (router RouterGroup) TagRouter() {
 	tagApp := api.ApiGroupApp.TagApi
 	router.POST("tags", tagApp.TagCreateView)
