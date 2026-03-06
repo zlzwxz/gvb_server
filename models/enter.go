@@ -3,9 +3,9 @@ package models
 import "time"
 
 type MODEL struct {
-	ID        uint      `gorm:"primarykey" json:"id"` // 主键ID
-	CreatedAt time.Time `json:"created_at"`           // 创建时间
-	UpdatedAt time.Time `json:"-"`                    // 更新时间
+	ID        uint      `gorm:"primarykey" json:"id,select(c)"` // 主键ID
+	CreatedAt time.Time `json:"created_at"`                     // 创建时间
+	UpdatedAt time.Time `json:"-"`                              // 更新时间
 }
 
 type RemoveRequest struct {
@@ -17,6 +17,7 @@ type PageInfo struct {
 	Limit int    `form:"limit"`
 	Sort  string `form:"sort"`
 	Tag   string `form:"tag"`
+	Id    string `form:"id"`
 }
 
 type ESIDRequest struct {

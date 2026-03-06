@@ -31,7 +31,7 @@ const (
 	TextMsg    ctype.MsgType = 1 // 文本消息
 	ImageMsg   ctype.MsgType = 2 // 图片消息
 	SystemMsg  ctype.MsgType = 3 // 系统消息
-	InRoomMsg  ctype.MsgType = 4 // 进入聊天室消息
+	InRoomMsg  ctype.MsgType = 0 // 进入聊天室消息
 	OutRoomMsg ctype.MsgType = 5 // 离开聊天室消息
 )
 

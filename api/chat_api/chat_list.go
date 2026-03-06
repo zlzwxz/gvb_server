@@ -30,9 +30,12 @@ func (ChatApi) ChatListView(c *gin.Context) {
 	}
 	cr.Sort = "created_at desc"
 	list, count, _ := common.ComList(models.ChatModel{}, common.Option{
-		PageInfo: cr,
+		PageInfo:  cr,
+		Where:     "msg_type NOT IN (?, ?)",
+		WhereArgs: []interface{}{0, 5},
 	})
 	data := filter.Omit("list", list)
+	// 过滤空对象
 	_list, _ := data.(filter.Filter)
 	if string(_list.MustMarshalJSON()) == "{}" {
 		list = make([]models.ChatModel, 0)

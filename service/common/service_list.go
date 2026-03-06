@@ -2,12 +2,13 @@ package common
 
 import (
 	"fmt"
-	"gorm.io/gorm"
 	"gvb-server/global"
 	"gvb-server/models"
 	"gvb-server/plugins/log_stash"
 	"reflect"
 	"strings"
+
+	"gorm.io/gorm"
 )
 
 type Option struct {
@@ -15,6 +16,9 @@ type Option struct {
 	Debug           bool            // 是否开启调试模式
 	Likes           []string        // 模糊查询的字段
 	Level           log_stash.Level // 日志的等级
+	Where           string          // 自定义 WHERE 条件
+	WhereArgs       []interface{}   // WHERE 条件参数
+
 }
 
 func ComList[T any](model T, option Option) (list []T, count int64, err error) {
@@ -51,7 +55,10 @@ func ComList[T any](model T, option Option) (list []T, count int64, err error) {
 	if option.Level != 0 {
 		query = query.Where("level = ?", option.Level)
 	}
-
+	// 添加自定义 WHERE 条件
+	if option.Where != "" {
+		query = query.Where(option.Where, option.WhereArgs...)
+	}
 	// 计数（如果有 WHERE 条件，要先加条件再 Count）
 	if err = query.Count(&count).Error; err != nil {
 		return nil, 0, fmt.Errorf("查询总数失败: %w", err)

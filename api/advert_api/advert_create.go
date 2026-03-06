@@ -1,17 +1,18 @@
 package advert_api
 
 import (
-	"github.com/gin-gonic/gin"
 	"gvb-server/global"
 	"gvb-server/models"
 	"gvb-server/models/res"
+
+	"github.com/gin-gonic/gin"
 )
 
 type AdvertRequest struct {
-	Title  string `json:"title" binding:"required" msg:"请输入标题"`       // 显示的标题
-	Href   string `json:"href" binding:"required,url" msg:"跳转链接非法"`   // 跳转链接
-	Images string `json:"images" binding:"required,url" msg:"图片地址非法"` // 图片
-	IsShow bool   `json:"is_show" binding:"required" msg:"请选择是否展示"`   // 是否展示
+	Title  string `json:"title" binding:"required" msg:"请输入标题"`     // 显示的标题
+	Href   string `json:"href" binding:"required,url" msg:"跳转链接非法"` // 跳转链接
+	Images string `json:"images" binding:"required" msg:"图片地址非法"`   // 图片
+	IsShow bool   `json:"is_show" binding:"required" msg:"请选择是否展示"` // 是否展示
 }
 
 // AdvertCreateView 添加广告
@@ -38,7 +39,7 @@ func (AdvertApi) AdvertCreateView(c *gin.Context) {
 		return
 	}
 
-	err = global.DB.Create(&models.AdvertModel{
+	err = global.DB.Debug().Create(&models.AdvertModel{
 		Title:  cr.Title,
 		Href:   cr.Href,
 		Images: cr.Images,

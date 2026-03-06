@@ -29,8 +29,12 @@ func (ArticleApi) FullTextSearchView(c *gin.Context) {
 	boolQuery := elastic.NewBoolQuery()
 
 	fmt.Println(cr.Key)
-	if cr.Key != "" {
+	if cr.Key != "" && cr.Id == "" {
 		boolQuery.Must(elastic.NewMultiMatchQuery(cr.Key, "title", "body"))
+	}
+	//如果前端传了文章id值，那么应该是精确查询，应该根据id查询单条文章
+	if cr.Id != "" && cr.Key == "" {
+		boolQuery.Must(elastic.NewTermQuery("key", cr.Id))
 	}
 
 	result, err := global.ESClient.
