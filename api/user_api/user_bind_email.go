@@ -100,7 +100,7 @@ func (UserApi) UserBindEmailView(c *gin.Context) {
 		"email": emailValue,
 	}
 	if strings.TrimSpace(cr.Password) != "" {
-		if len(cr.Password) < 4 {
+		if len(strings.TrimSpace(cr.Password)) < 8 {
 			res.FailWithMessage("密码强度太低", c)
 			return
 		}

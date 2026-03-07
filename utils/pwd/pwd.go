@@ -2,14 +2,13 @@ package pwd
 
 import (
 	"golang.org/x/crypto/bcrypt"
-	"log"
 )
 
 // 加密密码
 func HashPwd(pwd string) string {
-	hash, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.MinCost)
+	hash, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost)
 	if err != nil {
-		log.Println(err)
+		return ""
 	}
 	return string(hash)
 }
@@ -20,7 +19,6 @@ func ComparePasswords(hashedPwd string, plainPwd string) bool {
 
 	err := bcrypt.CompareHashAndPassword(byteHash, []byte(plainPwd))
 	if err != nil {
-		log.Println(err)
 		return false
 	}
 	return true

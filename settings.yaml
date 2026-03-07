@@ -28,28 +28,34 @@ email:
   use_ssl: true
   user_tls: true
 jwt:
-  secret: ""
+  secret: please_change_this_jwt_secret_32_chars
   expires: 10
-  issuer: ""
+  issuer: gvb-server
 site_info:
   created_at: "2023-01-01"
-  bei_an: 湘IcP备2021010654号-1
-  title: 美玲的个人博客
+  bei_an: ""
+  title: Zl 的个人博客
   qq_image: qq_image:http://www.fengfengzhidao.com/static/my/img/footer/qq.png
   version: 6.0.2
-  email: 2663456523@qq.com
+  email: 936832660@qq.com
   wechat_image: wechat_image:http://www.fengfengzhidao.com/static/my/img/footer/wechat.png
-  name: 枫机知道
+  name: 快乐博客
   job: 后端开发
-  addr: 湖南长沙
-  slogan: 美玲博雾
-  slogan_en: MEILINGBLOG
-  web: /www.fengfengzhidao.com/
+  addr: 地球
+  slogan: 快乐博客
+  slogan_en: zlboke
+  web: ""
   bilibili_url: https://space.bilibili.com/359151217
   gitee_url: https://qitee.com/fengfengzhidao
   github_url: https://qithub.com/fengfengzhidao/
+  profile: 这里是个人介绍栏，可填写你的经历、擅长方向和服务说明。
+  contact: 'QQ: 936832660 / 微信: meiling_blog / 电话: 13800000000'
+  service_url: ""
+  auto_crawl_fengfeng_articles: false
+  crawler_user_name: system_crawler
+  crawler_nick_name: 系统员
 qq:
-  app_id: 102823569
+  app_id: "102823569"
   key: key
   redirect: ay71g6HDvOekfNRM
 qiniu:
@@ -63,6 +69,7 @@ qiniu:
   size: 0
 news:
   enabled_source_names: []
+  enabled_source_ids: []
 upload:
   path: uploads/file
   max_size: 10
@@ -72,7 +79,7 @@ redis:
   password: ""
   poolSize: 100
 es:
-  host: "http://127.0.0.1"
+  host: http://127.0.0.1
   port: 9200
   user: ""
   password: ""

@@ -12,7 +12,7 @@ type MODEL struct {
 
 // RemoveRequest 统一接收批量删除时的 ID 列表。
 type RemoveRequest struct {
-	IDList []uint `json:"id_list"`
+	IDList []uint `json:"id_list" binding:"required,min=1,dive,gt=0"`
 }
 
 // PageInfo 统一接收常见的分页、排序和关键字搜索参数。

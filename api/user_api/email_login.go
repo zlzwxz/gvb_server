@@ -44,11 +44,18 @@ func (UserApi) EmailLoginView(c *gin.Context) {
 	//添加日志记录
 	log := log_stash.NewLogByGin(c)
 	ip, addr := utils.GetAddrByGin(c)
+	if isLoginRateLimited(ip, cr.UserName) {
+		log.Warn(fmt.Sprintf("登录请求已触发限流 user:%s ip:%s", cr.UserName, ip))
+		res.FailWithMessage("登录失败次数过多，请稍后再试", c)
+		return
+	}
+
 	err = global.DB.Take(&userModel, "user_name = ? or email = ?", cr.UserName, cr.UserName).Error
 	if err != nil {
 		// 没找到
 		global.Log.Warn("用户名不存在")
 		log.Info(fmt.Sprintf("用户名%v不存在", cr.UserName))
+		markLoginFailed(ip, cr.UserName)
 		res.FailWithMessage("用户名或密码错误", c)
 		return
 	}
@@ -56,10 +63,12 @@ func (UserApi) EmailLoginView(c *gin.Context) {
 	isCheck := pwd.ComparePasswords(userModel.Password, cr.Password)
 	if !isCheck {
 		global.Log.Warn("用户名密码错误")
-		log.Info(fmt.Sprintf("用户名%v密码错误", cr.Password))
+		log.Info(fmt.Sprintf("用户名%v密码错误", cr.UserName))
+		markLoginFailed(ip, cr.UserName)
 		res.FailWithMessage("用户名或密码错误", c)
 		return
 	}
+	clearLoginFailRecord(ip, cr.UserName)
 	// 登录成功，生成token
 	token, err := jwts.GenToken(jwts.JwtPayLoad{
 		NickName: userModel.NickName,

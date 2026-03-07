@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -29,7 +28,7 @@ func InitGorm() *gorm.DB {
 		//DisableForeignKeyConstraintWhenMigrating: true, //忽略外键检查
 	})
 	if err != nil {
-		global.Log.Fatalf(fmt.Sprintf("[%s] mysql连接失败", dsn))
+		global.Log.Fatalf("[%s] mysql连接失败", dsn)
 	} else {
 		global.Log.Infof("[%s] mysql连接成功", dsn)
 	}

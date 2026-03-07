@@ -29,9 +29,11 @@ type ArticleModel struct {
 	UserNickName string `json:"user_nick_name" structs:"user_nick_name"` //用户昵称
 	UserAvatar   string `json:"user_avatar" structs:"user_avatar"`       // 用户头像
 
-	Category string `json:"category" structs:"category"`         // 文章分类
-	Source   string `json:"source, omit(list)" structs:"source"` // 文章来源
-	Link     string `json:"link, omit(list)" structs:"link"`     // 原文链接
+	Category  string `json:"category" structs:"category"`         // 文章分类
+	Source    string `json:"source, omit(list)" structs:"source"` // 文章来源
+	Link      string `json:"link, omit(list)" structs:"link"`     // 原文链接
+	BoardID   uint   `json:"board_id" structs:"board_id"`         // 板块ID
+	BoardName string `json:"board_name" structs:"board_name"`     // 板块名称
 
 	BannerID  uint   `json:"banner_id" structs:"banner_id"`   // 文章封面id
 	BannerUrl string `json:"banner_url" structs:"banner_url"` // 文章封面
@@ -40,11 +42,17 @@ type ArticleModel struct {
 
 	Attachments []ArticleAttachment `json:"attachments" structs:"attachments"` // 附件列表
 
+	IsPrivate bool `json:"is_private" structs:"is_private"` // 是否私密，私密文章仅作者和管理员可见
+
 	ReviewStatus     ctype.ArticleReviewStatus `json:"review_status" structs:"review_status"`           // 审核状态
 	ReviewReason     string                    `json:"review_reason" structs:"review_reason"`           // 审核备注
 	ReviewedAt       string                    `json:"reviewed_at" structs:"reviewed_at"`               // 审核时间
 	ReviewerID       uint                      `json:"reviewer_id" structs:"reviewer_id"`               // 审核人ID
 	ReviewerNickName string                    `json:"reviewer_nick_name" structs:"reviewer_nick_name"` // 审核人昵称
+
+	DuplicateRate        float64 `json:"duplicate_rate" structs:"duplicate_rate"`                       // 重复率（%）
+	DuplicateTargetID    string  `json:"duplicate_target_id, omit(list)" structs:"duplicate_target_id"` // 最相似文章ID
+	DuplicateTargetTitle string  `json:"duplicate_target_title" structs:"duplicate_target_title"`       // 最相似文章标题
 }
 
 type ArticleAttachment struct {
@@ -110,6 +118,12 @@ func (ArticleModel) Mapping() string {
       "link": { 
         "type": "keyword"
       },
+      "board_id": {
+        "type": "integer"
+      },
+      "board_name": {
+        "type": "keyword"
+      },
       "banner_id": {
         "type": "integer"
       },
@@ -136,6 +150,9 @@ func (ArticleModel) Mapping() string {
           }
         }
       },
+      "is_private": {
+        "type": "boolean"
+      },
       "review_status": {
         "type": "integer"
       },
@@ -152,6 +169,15 @@ func (ArticleModel) Mapping() string {
         "type": "date",
         "null_value": "null",
         "format": "[yyyy-MM-dd HH:mm:ss]"
+      },
+      "duplicate_rate": {
+        "type": "float"
+      },
+      "duplicate_target_id": {
+        "type": "keyword"
+      },
+      "duplicate_target_title": {
+        "type": "text"
       },
       "created_at":{
         "type": "date",

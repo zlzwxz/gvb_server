@@ -3,6 +3,7 @@ package article_api
 import (
 	"gvb-server/models"
 	"gvb-server/models/ctype"
+	"gvb-server/service/board_ser"
 	"gvb-server/service/redis_ser"
 	"gvb-server/utils/jwts"
 	"strings"
@@ -47,22 +48,56 @@ func canManageArticle(article models.ArticleModel, claims *jwts.CustomClaims) bo
 	if isAdmin(claims) {
 		return true
 	}
-	return article.UserID == claims.UserID
+	if article.UserID == claims.UserID {
+		return true
+	}
+	if article.BoardID > 0 {
+		if board, err := board_ser.GetBoardByID(article.BoardID); err == nil {
+			if board_ser.IsUserBoardManager(board, claims.UserID) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func canReviewArticle(article models.ArticleModel, claims *jwts.CustomClaims) bool {
+	if claims == nil {
+		return false
+	}
+	if isAdmin(claims) {
+		return true
+	}
+	if article.BoardID == 0 {
+		return false
+	}
+	board, err := board_ser.GetBoardByID(article.BoardID)
+	if err != nil {
+		return false
+	}
+	return board_ser.IsUserBoardManager(board, claims.UserID)
 }
 
 func canViewArticle(article models.ArticleModel, claims *jwts.CustomClaims) bool {
-	if article.ReviewStatus.IsPublicVisible() {
+	if article.ReviewStatus.IsPublicVisible() && !article.IsPrivate {
 		return true
 	}
 	return canManageArticle(article, claims)
 }
 
 func publicVisibleQuery() elastic.Query {
-	return elastic.NewBoolQuery().
+	reviewQuery := elastic.NewBoolQuery().
 		Should(
 			elastic.NewTermQuery("review_status", int(ctype.ArticleReviewApproved)),
 			elastic.NewTermQuery("review_status", int(ctype.ArticleReviewLegacy)),
 			elastic.NewBoolQuery().MustNot(elastic.NewExistsQuery("review_status")),
 		).
 		MinimumNumberShouldMatch(1)
+	privateQuery := elastic.NewBoolQuery().
+		Should(
+			elastic.NewTermQuery("is_private", false),
+			elastic.NewBoolQuery().MustNot(elastic.NewExistsQuery("is_private")),
+		).
+		MinimumNumberShouldMatch(1)
+	return elastic.NewBoolQuery().Must(reviewQuery, privateQuery)
 }

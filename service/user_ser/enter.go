@@ -88,6 +88,9 @@ func (UserService) CreateUser(userName, nickName, password string, role ctype.Ro
 	}
 
 	hashPwd := pwd.HashPwd(password)
+	if strings.TrimSpace(hashPwd) == "" {
+		return errors.New("密码加密失败")
+	}
 	addr := utils.GetAddr(ip)
 	return global.DB.Create(&models.UserModel{
 		NickName:   nickName,

@@ -42,6 +42,10 @@ func (UserApi) UserCreateView(c *gin.Context) {
 	}
 
 	cr.Email = strings.ToLower(strings.TrimSpace(cr.Email))
+	if len(strings.TrimSpace(cr.Password)) < 8 {
+		res.FailWithMessage("密码长度至少 8 位", c)
+		return
+	}
 	isAdminRequest := isAdminCreator(c)
 	if !isAdminRequest {
 		cr.Role = ctype.PermissionUser

@@ -17,4 +17,10 @@ type SiteInfo struct {
 	BiliBiliUrl string `yaml:"bilibili_url" json:"bilibili_url"`
 	GiteeUrl    string `yaml:"gitee_url" json:"gitee_url"`
 	GithubUrl   string `yaml:"github_url" json:"github_url"`
+	Profile     string `yaml:"profile" json:"profile"`                                           // 个人介绍文案
+	Contact     string `yaml:"contact" json:"contact"`                                           // 联系方式（手机号/微信/QQ文本）
+	ServiceURL  string `yaml:"service_url" json:"service_url"`                                   // 客服地址
+	AutoCrawl   bool   `yaml:"auto_crawl_fengfeng_articles" json:"auto_crawl_fengfeng_articles"` // 是否自动抓取枫枫知道文章
+	CrawlerUser string `yaml:"crawler_user_name" json:"crawler_user_name"`                       // 自动抓取写入文章时使用的系统账号
+	CrawlerNick string `yaml:"crawler_nick_name" json:"crawler_nick_name"`                       // 自动抓取写入文章时使用的系统昵称
 }

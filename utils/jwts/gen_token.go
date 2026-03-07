@@ -1,14 +1,20 @@
 package jwts
 
 import (
+	"errors"
 	"github.com/golang-jwt/jwt/v5"
 	"gvb-server/global"
+	"strings"
 	"time"
 )
 
 // GenToken 创建 Token
 func GenToken(user JwtPayLoad) (string, error) {
-	MySecret = []byte(global.Config.Jwt.Secret)
+	secret := strings.TrimSpace(global.Config.Jwt.Secret)
+	if secret == "" {
+		return "", errors.New("jwt secret 未配置")
+	}
+	MySecret = []byte(secret)
 	claim := CustomClaims{
 		user,
 		jwt.RegisteredClaims{

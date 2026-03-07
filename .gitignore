@@ -1,0 +1,7 @@
+tmp/
+log/
+uploads/
+*.exe
+settings.yaml
+.idea/
+.air/

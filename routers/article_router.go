@@ -11,7 +11,10 @@ func (router RouterGroup) ArticleRouter() {
 	articleApp := api.ApiGroupApp.ArticleApi
 	router.POST("articles", middleware.JwtAuth(), articleApp.ArticleCreateView)
 	router.GET("articles", articleApp.ArticleListView)
-	router.PUT("articles/review", middleware.JwtAdmin(), articleApp.ArticleReviewView)
+	router.POST("articles/reports", middleware.JwtAuth(), articleApp.ArticleReportCreateView)
+	router.GET("articles/reports", middleware.JwtAuth(), articleApp.ArticleReportListView)
+	router.PUT("articles/reports", middleware.JwtAuth(), articleApp.ArticleReportHandleView)
+	router.PUT("articles/review", middleware.JwtAuth(), articleApp.ArticleReviewView)
 	router.GET("articles/detail", articleApp.ArticleDetailByTitleView)
 	router.GET("articles/calendar", articleApp.ArticleCalendarView)
 	router.GET("articles/tags", articleApp.ArticleTagListView)

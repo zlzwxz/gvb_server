@@ -37,6 +37,10 @@ func (ArticleApi) ArticleReviewView(c *gin.Context) {
 		res.FailWithMessage("文章不存在", c)
 		return
 	}
+	if !canReviewArticle(article, claims) {
+		res.FailWithMessage("无权审核该文章", c)
+		return
+	}
 
 	reason := strings.TrimSpace(cr.ReviewReason)
 	if cr.ReviewStatus == int(ctype.ArticleReviewApproved) {
@@ -55,7 +59,7 @@ func (ArticleApi) ArticleReviewView(c *gin.Context) {
 		return
 	}
 
-	if cr.ReviewStatus == int(ctype.ArticleReviewApproved) {
+	if cr.ReviewStatus == int(ctype.ArticleReviewApproved) && !article.IsPrivate {
 		es_ser.DeleteFullTextByArticleID(cr.ID)
 		es_ser.AsyncArticleByFullText(es_ser.SearchData{
 			Key:   cr.ID,
@@ -68,5 +72,9 @@ func (ArticleApi) ArticleReviewView(c *gin.Context) {
 	}
 
 	es_ser.DeleteFullTextByArticleID(cr.ID)
+	if cr.ReviewStatus == int(ctype.ArticleReviewApproved) && article.IsPrivate {
+		res.OkWithMessage("审核通过（私密文章不会进入公开搜索）", c)
+		return
+	}
 	res.OkWithMessage("已驳回该文章", c)
 }

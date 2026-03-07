@@ -19,7 +19,7 @@ import (
 // @Success 200 {object} res.Response{msg=string} "点赞成功"
 // @Failure 400 {object} res.Response "请求错误"
 // @Failure 401 {object} res.Response "未授权"
-// @Router /api/digg [post]
+// @Router /api/article/digg [post]
 func (DiggApi) DiggArticleView(c *gin.Context) {
 	var cr models.ESIDRequest
 	err := c.ShouldBindJSON(&cr)

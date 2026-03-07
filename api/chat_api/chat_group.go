@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"gvb-server/global"
@@ -26,9 +28,10 @@ type ChatUser struct {
 	Avatar   string `json:"avatar" swag:"description:聊天室头像"`
 }
 
-// ConnGroupMap 保存当前在线连接。
-// key 使用 remote address，是因为同一个聊天室里每个 websocket 连接天然唯一。
-var ConnGroupMap = map[string]ChatUser{}
+var (
+	connGroupMap = map[string]ChatUser{}
+	connGroupMu  sync.RWMutex
+)
 
 // 消息类型常量定义。
 const (
@@ -67,7 +70,18 @@ type GroupResponse struct {
 func (ChatApi) ChatGroupView(c *gin.Context) {
 	var upGrader = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
-			return true
+			origin := strings.TrimSpace(r.Header.Get("Origin"))
+			if origin == "" {
+				return true
+			}
+			originURL, err := url.Parse(origin)
+			if err != nil {
+				return false
+			}
+			if strings.EqualFold(originURL.Host, r.Host) {
+				return true
+			}
+			return isLocalOrigin(originURL.Hostname()) && isLocalOrigin(strings.Split(r.Host, ":")[0])
 		},
 	}
 	conn, err := upGrader.Upgrade(c.Writer, c.Request, nil)
@@ -85,21 +99,26 @@ func (ChatApi) ChatGroupView(c *gin.Context) {
 		NickName: nickName,
 		Avatar:   avatar,
 	}
-	ConnGroupMap[addr] = chatUser
+	setChatUser(addr, chatUser)
+	defer func() {
+		deleteChatUser(addr)
+		_ = conn.Close()
+	}()
 	logrus.Infof("%s %s 连接成功", addr, chatUser.NickName)
 
 	for {
 		_, p, err := conn.ReadMessage()
 		if err != nil {
-			SendGroupMsg(conn, GroupResponse{
+			deleteChatUser(addr)
+			SendGroupMsg(addr, GroupResponse{
 				NickName:    chatUser.NickName,
 				Avatar:      chatUser.Avatar,
 				MsgType:     OutRoomMsg,
 				Content:     fmt.Sprintf("%s 离开聊天室", chatUser.NickName),
 				Date:        time.Now(),
-				OnlineCount: len(ConnGroupMap) - 1,
+				OnlineCount: onlineCount(),
 			})
-			break
+			return
 		}
 
 		var request GroupRequest
@@ -109,7 +128,7 @@ func (ChatApi) ChatGroupView(c *gin.Context) {
 				Avatar:      chatUser.Avatar,
 				MsgType:     SystemMsg,
 				Content:     "参数绑定失败",
-				OnlineCount: len(ConnGroupMap),
+				OnlineCount: onlineCount(),
 			})
 			continue
 		}
@@ -122,25 +141,25 @@ func (ChatApi) ChatGroupView(c *gin.Context) {
 					Avatar:      chatUser.Avatar,
 					MsgType:     SystemMsg,
 					Content:     "消息不能为空",
-					OnlineCount: len(ConnGroupMap),
+					OnlineCount: onlineCount(),
 				})
 				continue
 			}
-			SendGroupMsg(conn, GroupResponse{
+			SendGroupMsg(addr, GroupResponse{
 				NickName:    chatUser.NickName,
 				Avatar:      chatUser.Avatar,
 				Content:     request.Content,
 				MsgType:     TextMsg,
 				Date:        time.Now(),
-				OnlineCount: len(ConnGroupMap),
+				OnlineCount: onlineCount(),
 			})
 		case InRoomMsg:
-			SendGroupMsg(conn, GroupResponse{
+			SendGroupMsg(addr, GroupResponse{
 				NickName:    chatUser.NickName,
 				Avatar:      chatUser.Avatar,
 				Content:     fmt.Sprintf("%s 进入聊天室", chatUser.NickName),
 				Date:        time.Now(),
-				OnlineCount: len(ConnGroupMap),
+				OnlineCount: onlineCount(),
 			})
 		default:
 			SendMsg(addr, GroupResponse{
@@ -148,19 +167,16 @@ func (ChatApi) ChatGroupView(c *gin.Context) {
 				Avatar:      chatUser.Avatar,
 				MsgType:     SystemMsg,
 				Content:     "消息类型错误",
-				OnlineCount: len(ConnGroupMap),
+				OnlineCount: onlineCount(),
 			})
 		}
 	}
-	defer conn.Close()
-	delete(ConnGroupMap, addr)
 }
 
 // SendGroupMsg 广播消息给聊天室里的全部在线用户，并把消息写入聊天记录表。
-func SendGroupMsg(conn *websocket.Conn, response GroupResponse) {
+func SendGroupMsg(senderAddr string, response GroupResponse) {
 	byteData, _ := json.Marshal(response)
-	_addr := conn.RemoteAddr().String()
-	ip, addr := getIPAndAddr(_addr)
+	ip, addr := getIPAndAddr(senderAddr)
 
 	global.DB.Create(&models.ChatModel{
 		NickName: response.NickName,
@@ -171,7 +187,7 @@ func SendGroupMsg(conn *websocket.Conn, response GroupResponse) {
 		IsGroup:  true,
 		MsgType:  response.MsgType,
 	})
-	for _, chatUser := range ConnGroupMap {
+	for _, chatUser := range snapshotChatUsers() {
 		chatUser.Conn.WriteMessage(websocket.TextMessage, byteData)
 	}
 }
@@ -179,7 +195,10 @@ func SendGroupMsg(conn *websocket.Conn, response GroupResponse) {
 // SendMsg 向单个在线用户推送系统提示类消息。
 func SendMsg(_addr string, response GroupResponse) {
 	byteData, _ := json.Marshal(response)
-	chatUser := ConnGroupMap[_addr]
+	chatUser, ok := getChatUser(_addr)
+	if !ok {
+		return
+	}
 	ip, addr := getIPAndAddr(_addr)
 	global.DB.Create(&models.ChatModel{
 		NickName: response.NickName,
@@ -191,6 +210,46 @@ func SendMsg(_addr string, response GroupResponse) {
 		MsgType:  response.MsgType,
 	})
 	chatUser.Conn.WriteMessage(websocket.TextMessage, byteData)
+}
+
+func setChatUser(addr string, user ChatUser) {
+	connGroupMu.Lock()
+	defer connGroupMu.Unlock()
+	connGroupMap[addr] = user
+}
+
+func deleteChatUser(addr string) {
+	connGroupMu.Lock()
+	defer connGroupMu.Unlock()
+	delete(connGroupMap, addr)
+}
+
+func getChatUser(addr string) (ChatUser, bool) {
+	connGroupMu.RLock()
+	defer connGroupMu.RUnlock()
+	user, ok := connGroupMap[addr]
+	return user, ok
+}
+
+func snapshotChatUsers() []ChatUser {
+	connGroupMu.RLock()
+	defer connGroupMu.RUnlock()
+	result := make([]ChatUser, 0, len(connGroupMap))
+	for _, user := range connGroupMap {
+		result = append(result, user)
+	}
+	return result
+}
+
+func onlineCount() int {
+	connGroupMu.RLock()
+	defer connGroupMu.RUnlock()
+	return len(connGroupMap)
+}
+
+func isLocalOrigin(host string) bool {
+	host = strings.ToLower(strings.TrimSpace(host))
+	return host == "localhost" || host == "127.0.0.1" || host == "::1"
 }
 
 // getIPAndAddr 从 remote address 里拆出 IP，并解析归属地。

@@ -3,7 +3,9 @@ package common
 import (
 	"fmt"
 	"reflect"
+	"regexp"
 	"strings"
+	"unicode"
 
 	"gorm.io/gorm"
 	"gvb-server/global"
@@ -29,9 +31,7 @@ func ComList[T any](model T, option Option) (list []T, count int64, err error) {
 	if option.Debug {
 		DB = global.DB.Session(&gorm.Session{Logger: global.MysqlLog})
 	}
-	if option.Sort == "" {
-		option.Sort = "created_at desc"
-	}
+	option.Sort = sanitizeSortClause(option.Sort, model, "created_at desc")
 	if option.Page < 1 {
 		option.Page = 1
 	}
@@ -96,4 +96,136 @@ func addFuzzySearch(query *gorm.DB, model interface{}, keyword string) *gorm.DB 
 		query = query.Where(strings.Join(conditions, " OR "), args...)
 	}
 	return query
+}
+
+var sortClauseReg = regexp.MustCompile(`^([a-zA-Z0-9_]+)(?:\s+(asc|desc))?$`)
+
+func sanitizeSortClause(rawSort string, model any, fallback string) string {
+	allowedFieldSet := collectSortableFieldSet(model)
+	if len(allowedFieldSet) == 0 {
+		return fallback
+	}
+
+	rawSort = strings.TrimSpace(strings.ToLower(rawSort))
+	if rawSort == "" {
+		return fallback
+	}
+
+	safeClauses := make([]string, 0, 2)
+	for _, part := range strings.Split(rawSort, ",") {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+
+		matches := sortClauseReg.FindStringSubmatch(part)
+		if len(matches) == 0 {
+			continue
+		}
+
+		field := strings.TrimSpace(matches[1])
+		if _, ok := allowedFieldSet[field]; !ok {
+			continue
+		}
+
+		direction := strings.TrimSpace(matches[2])
+		if direction != "asc" {
+			direction = "desc"
+		}
+
+		safeClauses = append(safeClauses, fmt.Sprintf("%s %s", field, direction))
+	}
+
+	if len(safeClauses) == 0 {
+		return fallback
+	}
+	return strings.Join(safeClauses, ", ")
+}
+
+func collectSortableFieldSet(model any) map[string]struct{} {
+	fieldSet := map[string]struct{}{
+		"id":         {},
+		"created_at": {},
+		"updated_at": {},
+	}
+
+	modelType := reflect.TypeOf(model)
+	if modelType == nil {
+		return fieldSet
+	}
+	if modelType.Kind() == reflect.Ptr {
+		modelType = modelType.Elem()
+	}
+	if modelType.Kind() != reflect.Struct {
+		return fieldSet
+	}
+
+	walkSortableFields(modelType, fieldSet)
+	return fieldSet
+}
+
+func walkSortableFields(modelType reflect.Type, fieldSet map[string]struct{}) {
+	for index := 0; index < modelType.NumField(); index++ {
+		field := modelType.Field(index)
+		if field.Anonymous && field.Type.Kind() == reflect.Struct {
+			walkSortableFields(field.Type, fieldSet)
+			continue
+		}
+
+		if field.PkgPath != "" {
+			continue
+		}
+
+		fieldName := resolveSortableFieldName(field)
+		if fieldName == "" {
+			continue
+		}
+		fieldSet[fieldName] = struct{}{}
+	}
+}
+
+func resolveSortableFieldName(field reflect.StructField) string {
+	if jsonTag := strings.TrimSpace(field.Tag.Get("json")); jsonTag != "" && jsonTag != "-" {
+		name := strings.TrimSpace(strings.Split(jsonTag, ",")[0])
+		if name != "" {
+			return name
+		}
+	}
+
+	gormTag := strings.TrimSpace(field.Tag.Get("gorm"))
+	if gormTag != "" {
+		for _, item := range strings.Split(gormTag, ";") {
+			item = strings.TrimSpace(item)
+			if strings.HasPrefix(strings.ToLower(item), "column:") {
+				name := strings.TrimSpace(item[len("column:"):])
+				if name != "" {
+					return strings.ToLower(name)
+				}
+			}
+		}
+	}
+
+	return toSnakeCase(field.Name)
+}
+
+func toSnakeCase(value string) string {
+	if value == "" {
+		return ""
+	}
+	var builder strings.Builder
+	runes := []rune(value)
+	for index, currentRune := range runes {
+		if unicode.IsUpper(currentRune) {
+			if index > 0 {
+				prevRune := runes[index-1]
+				if unicode.IsLower(prevRune) || unicode.IsDigit(prevRune) {
+					builder.WriteRune('_')
+				}
+			}
+			builder.WriteRune(unicode.ToLower(currentRune))
+			continue
+		}
+		builder.WriteRune(unicode.ToLower(currentRune))
+	}
+	return builder.String()
 }

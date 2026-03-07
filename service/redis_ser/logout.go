@@ -2,7 +2,6 @@ package redis_ser
 
 import (
 	"gvb-server/global"
-	"gvb-server/utils"
 	"time"
 )
 
@@ -15,9 +14,8 @@ func Logout(token string, diff time.Duration) error {
 }
 
 func CheckLogout(token string) bool {
-	keys := global.Redis.Keys(prefix + "*").Val()
-	if utils.InList(prefix+token, keys) {
-		return true
+	if token == "" {
+		return false
 	}
-	return false
+	return global.Redis.Exists(prefix+token).Val() > 0
 }

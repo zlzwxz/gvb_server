@@ -5,8 +5,11 @@ import (
 	"gvb-server/models"
 	"gvb-server/models/ctype"
 	"gvb-server/models/res"
+	"gvb-server/service/board_ser"
+	"gvb-server/service/crawl_ser"
 	"gvb-server/service/es_ser"
 	"gvb-server/utils/jwts"
+	"gvb-server/utils/sanitize"
 	"math/rand"
 	"strings"
 	"time"
@@ -21,12 +24,14 @@ type ArticleRequest struct {
 	Title       string                     `json:"title" binding:"required" msg:"文章标题必填"`   // 文章标题
 	Abstract    string                     `json:"abstract"`                                // 文章简介
 	Content     string                     `json:"content" binding:"required" msg:"文章内容必填"` // 文章内容
+	BoardID     uint                       `json:"board_id" binding:"required" msg:"请选择板块"` // 文章板块
 	Category    string                     `json:"category"`                                // 文章分类
 	Source      string                     `json:"source"`                                  // 文章来源
 	Link        string                     `json:"link"`                                    // 原文链接
 	BannerID    uint                       `json:"banner_id"`                               // 文章封面id
 	Tags        ctype.Array                `json:"tags"`                                    // 文章标签
 	Attachments []models.ArticleAttachment `json:"attachments"`                             // 文章附件
+	IsPrivate   bool                       `json:"is_private"`                              // 私密文章开关（仅作者/管理员可见）
 }
 
 // ArticleCreateView 创建新文章
@@ -48,10 +53,32 @@ func (ArticleApi) ArticleCreateView(c *gin.Context) {
 		res.FailWithError(err, &cr, c)
 		return
 	}
+	cr.Title = strings.TrimSpace(cr.Title)
+	cr.Abstract = strings.TrimSpace(cr.Abstract)
+	cr.Category = strings.TrimSpace(cr.Category)
+	cr.Source = strings.TrimSpace(cr.Source)
+	cr.Content = sanitize.CleanMarkdownInput(cr.Content)
+	if cr.Content == "" {
+		res.FailWithMessage("文章内容不能为空", c)
+		return
+	}
+	if strings.TrimSpace(cr.Link) != "" {
+		cr.Link = sanitize.CleanURL(cr.Link, true)
+		if cr.Link == "" {
+			res.FailWithMessage("文章链接仅支持 http/https 或站内相对路径", c)
+			return
+		}
+	}
+
 	_claims, _ := c.Get("claims")
 	claims := _claims.(*jwts.CustomClaims)
 	userID := claims.UserID
 	userNickName := claims.NickName
+	board, err := board_ser.GetEnabledBoardByID(cr.BoardID)
+	if err != nil {
+		res.FailWithMessage("板块不存在或已停用", c)
+		return
+	}
 	reviewStatus := ctype.ArticleReviewPending
 	reviewedAt := ""
 	reviewerID := uint(0)
@@ -62,8 +89,6 @@ func (ArticleApi) ArticleCreateView(c *gin.Context) {
 		reviewerID = claims.UserID
 		reviewerNickName = claims.NickName
 	}
-	// 校验content  xss
-
 	// 处理content
 	unsafe := blackfriday.MarkdownCommon([]byte(cr.Content))
 	// 是不是有script标签
@@ -135,13 +160,16 @@ func (ArticleApi) ArticleCreateView(c *gin.Context) {
 		UserID:           userID,
 		UserNickName:     userNickName,
 		UserAvatar:       avatar,
-		Category:         cr.Category,
+		BoardID:          board.ID,
+		BoardName:        board.Name,
+		Category:         board.Name,
 		Source:           cr.Source,
 		Link:             cr.Link,
 		BannerID:         cr.BannerID,
 		BannerUrl:        bannerUrl,
 		Tags:             cr.Tags,
 		Attachments:      cr.Attachments,
+		IsPrivate:        cr.IsPrivate,
 		ReviewStatus:     reviewStatus,
 		ReviewedAt:       reviewedAt,
 		ReviewerID:       reviewerID,
@@ -154,8 +182,19 @@ func (ArticleApi) ArticleCreateView(c *gin.Context) {
 		res.FailWithMessage(err.Error(), c)
 		return
 	}
-	// 审核通过的文章才进入全文索引
-	if reviewStatus == ctype.ArticleReviewApproved {
+
+	if rate, duplicateID, duplicateTitle, duplicateErr := crawl_ser.CalculateArticleDuplicateRate(article.ID, article.Title, article.Content); duplicateErr == nil {
+		article.DuplicateRate = rate
+		article.DuplicateTargetID = duplicateID
+		article.DuplicateTargetTitle = duplicateTitle
+		_ = es_ser.ArticleUpdate(article.ID, map[string]any{
+			"duplicate_rate":         rate,
+			"duplicate_target_id":    duplicateID,
+			"duplicate_target_title": duplicateTitle,
+		})
+	}
+	// 审核通过 + 非私密的文章才进入全文索引，避免私密内容被公开搜索到。
+	if reviewStatus == ctype.ArticleReviewApproved && !article.IsPrivate {
 		es_ser.AsyncArticleByFullText(es_ser.SearchData{
 			Key:   article.ID,
 			Body:  article.Content,

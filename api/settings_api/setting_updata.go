@@ -6,6 +6,7 @@ import (
 	"gvb-server/core"
 	"gvb-server/global"
 	"gvb-server/models/res"
+	"gvb-server/service/crawl_ser"
 )
 
 // SettingsInfoUpdateView 更新某一项配置信息。
@@ -33,6 +34,12 @@ func (SettingsApi) SettingsInfoUpdateView(c *gin.Context) {
 		if err := c.ShouldBindJSON(&info); err != nil {
 			res.FailWithCode(res.ArgumentError, c)
 			return
+		}
+		if info.AutoCrawl {
+			if _, err := crawl_ser.EnsureCrawlerAccount(); err != nil {
+				res.FailWithMessage("系统员账号创建失败: "+err.Error(), c)
+				return
+			}
 		}
 		global.Config.SiteInfo = info
 	case "system":

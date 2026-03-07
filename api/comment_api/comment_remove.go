@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"gvb-server/global"
 	"gvb-server/models"
+	"gvb-server/models/ctype"
 	"gvb-server/models/res"
 	"gvb-server/service/redis_ser"
 	"gvb-server/utils"
+	"gvb-server/utils/jwts"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -26,6 +28,13 @@ import (
 // @Failure 404 {object} res.Response "评论不存在"
 // @Router /api/comments/{id} [delete]
 func (CommentApi) CommentRemoveView(c *gin.Context) {
+	claimsAny, ok := c.Get("claims")
+	if !ok {
+		res.FailWithMessage("未登录", c)
+		return
+	}
+	claims := claimsAny.(*jwts.CustomClaims)
+
 	var cr CommentIDRequest
 	err := c.ShouldBindUri(&cr)
 	if err != nil {
@@ -36,6 +45,10 @@ func (CommentApi) CommentRemoveView(c *gin.Context) {
 	err = global.DB.Take(&commentModel, cr.ID).Error
 	if err != nil {
 		res.FailWithMessage("评论不存在", c)
+		return
+	}
+	if claims.Role != int(ctype.PermissionAdmin) && commentModel.UserID != claims.UserID {
+		res.FailWithMessage("无权删除该评论", c)
 		return
 	}
 	// 统计评论下的子评论数 再把自己算上去

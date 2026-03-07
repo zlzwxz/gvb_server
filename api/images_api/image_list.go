@@ -1,6 +1,8 @@
 package images_api
 
 import (
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"gvb-server/models"
 	"gvb-server/models/res"
@@ -38,13 +40,27 @@ func (ImagesApi) ImageListView(c *gin.Context) {
 		Debug:    false,
 	}
 	if !isImageAdmin(claims) {
-		like := imageOwnerPathLike(claims.NickName)
-		if like == "" {
+		prefixes := imageOwnerPathPrefixes(claims)
+		if len(prefixes) == 0 {
 			res.OkWithList([]models.BannerModel{}, 0, c)
 			return
 		}
-		option.Where = "path LIKE ?"
-		option.WhereArgs = []interface{}{like}
+		conditions := make([]string, 0, len(prefixes))
+		args := make([]interface{}, 0, len(prefixes))
+		for _, prefix := range prefixes {
+			prefix = strings.TrimSpace(prefix)
+			if prefix == "" {
+				continue
+			}
+			conditions = append(conditions, "path LIKE ?")
+			args = append(args, prefix+"%")
+		}
+		if len(conditions) == 0 {
+			res.OkWithList([]models.BannerModel{}, 0, c)
+			return
+		}
+		option.Where = strings.Join(conditions, " OR ")
+		option.WhereArgs = args
 	}
 
 	list, count, err := common.ComList(models.BannerModel{}, option)
