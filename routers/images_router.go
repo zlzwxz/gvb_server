@@ -9,6 +9,7 @@ import (
 func (router RouterGroup) ImageRouter() {
 	imagesApi := api.ApiGroupApp.ImagesApi
 	router.POST("images", middleware.JwtAuth(), imagesApi.ImageUploadView)
+	router.GET("images/meta", middleware.JwtAuth(), imagesApi.ImageMetaView)
 	router.GET("images", middleware.JwtAuth(), imagesApi.ImageListView)
 	router.DELETE("images", middleware.JwtAuth(), imagesApi.ImageRemoveView)
 	router.PUT("images", middleware.JwtAuth(), imagesApi.ImageUpdateView)

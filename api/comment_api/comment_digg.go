@@ -25,7 +25,7 @@ type CommentIDRequest struct {
 // @Success 200 {object} res.Response{msg=string} "点赞成功"
 // @Failure 400 {object} res.Response "请求错误"
 // @Failure 404 {object} res.Response "评论不存在"
-// @Router /api/comments/digg/{id} [post]
+// @Router /api/comments/{id} [get]
 func (CommentApi) CommentDigg(c *gin.Context) {
 	var cr CommentIDRequest
 	err := c.ShouldBindUri(&cr)

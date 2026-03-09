@@ -4,11 +4,18 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"gvb-server/global"
 	"gvb-server/models"
 	"gvb-server/models/res"
-	"gvb-server/service/common"
 	"gvb-server/utils/jwts"
 )
+
+type imageListQuery struct {
+	models.PageInfo
+	Visibility string `form:"visibility"`
+	Category   string `form:"category"`
+	Mine       bool   `form:"mine"`
+}
 
 // ImageListView 图片列表
 // @Tags 图片管理
@@ -22,7 +29,7 @@ import (
 // @Success 200 {object} res.Response{data=res.ListResponse[models.BannerModel]}
 // @Router /api/images [get]
 func (ImagesApi) ImageListView(c *gin.Context) {
-	var cr models.PageInfo
+	var cr imageListQuery
 	err := c.ShouldBindQuery(&cr)
 	if err != nil {
 		res.FailWithCode(res.ArgumentError, c)
@@ -35,42 +42,43 @@ func (ImagesApi) ImageListView(c *gin.Context) {
 	}
 	claims := _claims.(*jwts.CustomClaims)
 
-	option := common.Option{
-		PageInfo: cr,
-		Debug:    false,
+	if cr.Page <= 0 {
+		cr.Page = 1
 	}
-	if !isImageAdmin(claims) {
-		prefixes := imageOwnerPathPrefixes(claims)
-		if len(prefixes) == 0 {
-			res.OkWithList([]models.BannerModel{}, 0, c)
-			return
-		}
-		conditions := make([]string, 0, len(prefixes))
-		args := make([]interface{}, 0, len(prefixes))
-		for _, prefix := range prefixes {
-			prefix = strings.TrimSpace(prefix)
-			if prefix == "" {
-				continue
-			}
-			conditions = append(conditions, "path LIKE ?")
-			args = append(args, prefix+"%")
-		}
-		if len(conditions) == 0 {
-			res.OkWithList([]models.BannerModel{}, 0, c)
-			return
-		}
-		option.Where = strings.Join(conditions, " OR ")
-		option.WhereArgs = args
+	if cr.Limit <= 0 {
+		cr.Limit = 12
+	}
+	if cr.Limit > 100 {
+		cr.Limit = 100
 	}
 
-	list, count, err := common.ComList(models.BannerModel{}, option)
-	if err != nil {
-		res.FailWithMessage(err.Error(), c)
+	query := global.DB.Model(&models.BannerModel{})
+	query = applyImageAccessQuery(query, claims, cr.Visibility, cr.Mine)
+
+	key := strings.TrimSpace(cr.Key)
+	if key != "" {
+		like := "%" + key + "%"
+		query = query.Where("name LIKE ? OR image_category LIKE ? OR path LIKE ?", like, like, like)
+	}
+
+	category := normalizeImageCategory(cr.Category)
+	if strings.TrimSpace(cr.Category) != "" {
+		query = query.Where("image_category = ? OR (image_category = '' AND ? = '未分类')", category, category)
+	}
+
+	var count int64
+	if err = query.Count(&count).Error; err != nil {
+		res.FailWithMessage("获取图片数量失败", c)
 		return
 	}
 
-	res.OkWithList(list, count, c)
+	sortValue := normalizeImageSort(cr.Sort)
+	var list []models.BannerModel
+	if err = query.Order(sortValue).Limit(cr.Limit).Offset((cr.Page - 1) * cr.Limit).Find(&list).Error; err != nil {
+		res.FailWithMessage("获取图片列表失败", c)
+		return
+	}
 
-	return
+	res.OkWithList(normalizeImageRows(list), count, c)
 
 }

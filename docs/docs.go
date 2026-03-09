@@ -203,6 +203,471 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/announcements": {
+            "get": {
+                "description": "前台公告列表。默认只返回全站公告；传 board_id 时会同时返回该板块公告和全站公告。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "公告管理"
+                ],
+                "summary": "获取公告列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量，默认 6，最大 20",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "按标题或内容模糊搜索",
+                        "name": "key",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "板块 ID",
+                        "name": "board_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "count": {
+                                                    "type": "integer",
+                                                    "format": "int64"
+                                                },
+                                                "list": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/definitions/announcement_api.announcementItem"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "支持创建全站公告或板块公告。开始结束时间留空表示长期有效。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "公告管理"
+                ],
+                "summary": "创建公告",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "公告信息",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/announcement_api.announcementSaveRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "创建成功",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "支持批量删除公告。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "公告管理"
+                ],
+                "summary": "删除公告",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "公告 ID 列表",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.RemoveRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "删除成功",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/announcements/manage": {
+            "get": {
+                "description": "支持按关键词、板块、是否展示筛选。scope=global 时只返回全站公告。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "公告管理"
+                ],
+                "summary": "获取后台公告列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量，默认 10，最大 100",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "按标题或内容搜索",
+                        "name": "key",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "板块 ID",
+                        "name": "board_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "是否展示",
+                        "name": "is_show",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "global 表示只看全站公告",
+                        "name": "scope",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "count": {
+                                                    "type": "integer",
+                                                    "format": "int64"
+                                                },
+                                                "list": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/definitions/announcement_api.announcementItem"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/announcements/{id}": {
+            "put": {
+                "description": "根据公告 ID 更新公告内容、展示状态、排序和有效期。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "公告管理"
+                ],
+                "summary": "更新公告",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "公告 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "公告信息",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/announcement_api.announcementSaveRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "更新成功",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/article/digg": {
+            "post": {
+                "description": "对指定文章进行点赞",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "点赞管理"
+                ],
+                "summary": "文章点赞",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "文章ID",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ESIDRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "点赞成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/article/text": {
+            "get": {
+                "description": "根据关键词搜索文章标题和正文内容",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "文章管理"
+                ],
+                "summary": "全文文章搜索",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "搜索关键词",
+                        "name": "key",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "搜索成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "count": {
+                                                    "type": "integer",
+                                                    "format": "int64"
+                                                },
+                                                "list": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/definitions/models.FullTextModel"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/articles": {
             "get": {
                 "description": "获取文章列表，支持分页、标签筛选和用户文章筛选",
@@ -1010,9 +1475,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/articles/search": {
+        "/api/articles/reports": {
             "get": {
-                "description": "根据关键词搜索文章标题和正文内容",
+                "description": "管理员可查看全部举报；版主仅能查看自己管理板块下的举报。status 可按处理状态筛选。",
                 "consumes": [
                     "application/json"
                 ],
@@ -1022,18 +1487,43 @@ const docTemplate = `{
                 "tags": [
                     "文章管理"
                 ],
-                "summary": "全文文章搜索",
+                "summary": "获取文章举报列表",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "搜索关键词",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量，默认 10，最大 100",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "按文章标题、举报人、原因搜索",
                         "name": "key",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "举报状态",
+                        "name": "status",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "搜索成功",
+                        "description": "获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -1052,7 +1542,7 @@ const docTemplate = `{
                                                 "list": {
                                                     "type": "array",
                                                     "items": {
-                                                        "$ref": "#/definitions/models.FullTextModel"
+                                                        "$ref": "#/definitions/models.ArticleReportModel"
                                                     }
                                                 }
                                             }
@@ -1062,8 +1552,163 @@ const docTemplate = `{
                             ]
                         }
                     },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "status=2 表示转入文章复审，status=3 表示忽略举报。只有管理员或对应板块版主可处理。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "文章管理"
+                ],
+                "summary": "处理文章举报",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "处理结果",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/article_api.articleReportHandleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "处理成功",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
                     "400": {
-                        "description": "请求错误",
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "举报自己的文章会被拦截；同一用户对同一篇文章存在待处理举报时，不能重复提交。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "文章管理"
+                ],
+                "summary": "提交文章举报",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "举报内容",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/article_api.articleReportCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "提交成功",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/articles/review": {
+            "put": {
+                "description": "review_status 仅允许传通过或驳回。管理员可全局审核，版主可审核自己管理板块下的文章。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "文章管理"
+                ],
+                "summary": "审核文章",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "审核参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/article_api.ArticleReviewRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "审核成功",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
                         "schema": {
                             "$ref": "#/definitions/res.Response"
                         }
@@ -1138,9 +1783,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/chat_groups_records": {
+        "/api/articles/{id}": {
             "get": {
-                "description": "建立 websocket 连接并加入公共聊天室，后续消息通过 websocket 双向通信。",
+                "description": "根据文章ID获取文章详细信息",
                 "consumes": [
                     "application/json"
                 ],
@@ -1148,14 +1793,120 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "聊天管理"
+                    "文章管理"
                 ],
-                "summary": "进入聊天室",
+                "summary": "获取文章详情",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "文章ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
-                    "101": {
-                        "description": "Switching Protocols",
+                    "200": {
+                        "description": "获取成功",
                         "schema": {
-                            "type": "string"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.ArticleModel"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "文章不存在",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/boards": {
+            "get": {
+                "description": "默认只返回启用中的板块；scope=all 时返回全部板块。结果附带版主和副版主用户 ID 列表。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "板块管理"
+                ],
+                "summary": "获取板块列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量，默认 50，最大 200",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "按板块名称或描述搜索",
+                        "name": "key",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "all 表示包含已停用板块",
+                        "name": "scope",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "count": {
+                                                    "type": "integer",
+                                                    "format": "int64"
+                                                },
+                                                "list": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/definitions/board_api.boardItem"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1165,9 +1916,174 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "put": {
+                "description": "根据板块 ID 更新板块信息、版主管理关系和置顶文章设置。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "板块管理"
+                ],
+                "summary": "更新板块",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "板块信息",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/board_api.boardSaveRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "更新成功",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "创建论坛板块，并可同时设置版主、副版主、置顶文章和展示状态。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "板块管理"
+                ],
+                "summary": "创建板块",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "板块信息",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/board_api.boardSaveRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "创建成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.BoardModel"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "批量删除板块。建议先确保前台和文章没有继续依赖这些板块。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "板块管理"
+                ],
+                "summary": "删除板块",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "板块 ID 列表",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.RemoveRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "删除成功",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
             }
         },
-        "/api/chats": {
+        "/api/chat_groups": {
             "get": {
                 "description": "获取聊天消息列表",
                 "consumes": [
@@ -1240,6 +2156,35 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/chat_groups_records": {
+            "get": {
+                "description": "建立 websocket 连接并加入公共聊天室，后续消息通过 websocket 双向通信。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "聊天管理"
+                ],
+                "summary": "进入聊天室",
+                "responses": {
+                    "101": {
+                        "description": "Switching Protocols",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/res.Response"
                         }
@@ -1369,8 +2314,8 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/comments/digg/{id}": {
-            "post": {
+        "/api/comments/{id}": {
+            "get": {
                 "description": "对指定评论进行点赞",
                 "consumes": [
                     "application/json"
@@ -1423,9 +2368,7 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/api/comments/{id}": {
+            },
             "delete": {
                 "description": "删除指定评论及其子评论",
                 "consumes": [
@@ -1494,7 +2437,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/data/seven_login": {
+        "/api/data_login": {
             "get": {
                 "description": "获取近七天内每天的登录和注册人数统计",
                 "consumes": [
@@ -1594,9 +2537,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/digg": {
-            "post": {
-                "description": "对指定文章进行点赞",
+        "/api/data_sum/admin": {
+            "get": {
+                "description": "返回待审核文章数、待处理举报数、公告总数和启用板块数，适合作为后台首页卡片数据。",
                 "consumes": [
                     "application/json"
                 ],
@@ -1604,9 +2547,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "点赞管理"
+                    "数据统计"
                 ],
-                "summary": "文章点赞",
+                "summary": "获取后台运营统计",
                 "parameters": [
                     {
                         "type": "string",
@@ -1614,20 +2557,11 @@ const docTemplate = `{
                         "name": "token",
                         "in": "header",
                         "required": true
-                    },
-                    {
-                        "description": "文章ID",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.ESIDRequest"
-                        }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "点赞成功",
+                        "description": "获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -1636,18 +2570,12 @@ const docTemplate = `{
                                 {
                                     "type": "object",
                                     "properties": {
-                                        "msg": {
-                                            "type": "string"
+                                        "data": {
+                                            "$ref": "#/definitions/data_api.AdminDataSumResponse"
                                         }
                                     }
                                 }
                             ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求错误",
-                        "schema": {
-                            "$ref": "#/definitions/res.Response"
                         }
                     },
                     "401": {
@@ -1710,6 +2638,120 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "用户名或密码错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/files": {
+            "post": {
+                "description": "仅允许上传附件白名单中的文件类型。上传成功后返回附件 ID 和下载地址，供文章 attachments 字段引用。",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "文件管理"
+                ],
+                "summary": "上传文章附件",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "附件文件",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "上传成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/file_api.FileUploadItem"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/files/{id}/download": {
+            "get": {
+                "description": "文章作者、管理员，以及已公开文章引用的附件都可以下载。下载时会做权限校验，不建议直接暴露物理路径。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "文件管理"
+                ],
+                "summary": "下载文章附件",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "附件 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "文件流",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
                         "schema": {
                             "$ref": "#/definitions/res.Response"
                         }
@@ -1963,7 +3005,7 @@ const docTemplate = `{
         },
         "/api/logs": {
             "get": {
-                "description": "获取系统日志列表，支持按级别筛选",
+                "description": "按级别、请求方法、路径、用户、响应码和时间范围筛选后台操作日志",
                 "consumes": [
                     "application/json"
                 ],
@@ -1990,14 +3032,74 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "每页数量",
+                        "description": "每页数量，默认 20，最大 200",
                         "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "按内容、请求体、响应体搜索",
+                        "name": "key",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "description": "日志级别",
                         "name": "level",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "请求方法",
+                        "name": "method",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "请求路径",
+                        "name": "path",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "IP",
+                        "name": "ip",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "用户 ID",
+                        "name": "user_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "HTTP 状态码",
+                        "name": "status_code",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "业务响应码",
+                        "name": "resp_code",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "开始时间，支持 2006-01-02 或 2006-01-02 15:04:05",
+                        "name": "date_from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "结束时间，支持 2006-01-02 或 2006-01-02 15:04:05",
+                        "name": "date_to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "排序，如 created_at desc",
+                        "name": "sort",
                         "in": "query"
                     }
                 ],
@@ -2111,6 +3213,44 @@ const docTemplate = `{
                         "description": "日志不存在",
                         "schema": {
                             "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/menu_names": {
+            "get": {
+                "description": "获取所有菜单的基础信息（ID、标题、路径）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "菜单管理"
+                ],
+                "summary": "获取菜单名称列表",
+                "responses": {
+                    "200": {
+                        "description": "返回菜单名称列表",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/menu_api.MenuNameResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -2280,44 +3420,6 @@ const docTemplate = `{
                                         },
                                         "msg": {
                                             "type": "string"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/api/menus/names": {
-            "get": {
-                "description": "获取所有菜单的基础信息（ID、标题、路径）",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "菜单管理"
-                ],
-                "summary": "获取菜单名称列表",
-                "responses": {
-                    "200": {
-                        "description": "返回菜单名称列表",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/res.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/menu_api.MenuNameResponse"
-                                            }
                                         }
                                     }
                                 }
@@ -2639,6 +3741,140 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/messages_all": {
+            "get": {
+                "description": "兼容旧前端和第三方调用方的管理员消息列表入口，实际逻辑与 /api/messages/all 相同。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "消息管理"
+                ],
+                "summary": "获取所有消息列表（兼容旧路径）",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "count": {
+                                                    "type": "integer",
+                                                    "format": "int64"
+                                                },
+                                                "list": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/definitions/models.MessageModel"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/messages_record": {
+            "get": {
+                "description": "兼容旧前端和第三方调用方的私信记录入口，实际逻辑与 /api/messages/record 相同。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "消息管理"
+                ],
+                "summary": "获取用户消息记录（兼容旧路径）",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "用户 ID",
+                        "name": "user_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/models.MessageModel"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/news": {
             "get": {
                 "description": "获取热搜榜新闻列表",
@@ -2838,9 +4074,458 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/settings/es/export": {
+            "get": {
+                "description": "导出指定索引为 JSON 文件。当前后台页面主要用于备份文章索引和排查全文索引内容。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "配置管理"
+                ],
+                "summary": "导出 ES 索引",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "索引名称，例如 article_index",
+                        "name": "index",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "导出的 JSON 文件",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/settings/es/import": {
+            "post": {
+                "description": "上传导出的 JSON 文件并执行页面导入。当前页面只支持导入 article_index，并会按文章创建逻辑重新校验数据。",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "配置管理"
+                ],
+                "summary": "导入 ES 索引",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "索引名称，当前仅支持 article_index",
+                        "name": "index",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "要导入的 JSON 文件",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "导入成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/es_ser.ArticleImportResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/settings/es/indices": {
+            "get": {
+                "description": "返回后台可见索引、文档数以及该索引是否支持页面导入导出。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "配置管理"
+                ],
+                "summary": "获取 ES 索引列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/es_ser.ESIndexSummary"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/settings/public/site_info": {
+            "get": {
+                "description": "返回前台首页、备案、站点标题等公开展示配置。该接口无需登录，适合站点初始化时直接调用。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "配置管理"
+                ],
+                "summary": "获取公开站点配置",
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/config.SiteInfo"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/settings/site_info/sync_fengfeng": {
+            "post": {
+                "description": "根据文章 ID、是否全量、是否允许更新等参数，把枫枫知道文章抓取并写入当前系统。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "配置管理"
+                ],
+                "summary": "同步枫枫文章",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "同步参数，不传时按默认策略执行",
+                        "name": "data",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/settings_api.settingsSyncFengfengArticlesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "同步成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/crawl_ser.SyncResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/settings/site_info/sync_fengfeng_images": {
+            "post": {
+                "description": "可以传指定图片 URL 列表，也可以直接一键同步预览结果中的全部新图片候选。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "配置管理"
+                ],
+                "summary": "同步枫枫图片",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "同步参数，不传时按默认策略执行",
+                        "name": "data",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/settings_api.settingsSyncFengfengImagesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "同步成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/crawl_ser.SyncImageResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/settings/site_info/sync_fengfeng_images_preview": {
+            "get": {
+                "description": "只返回图片候选、重复数量和扫描统计，不真正落库存储。适合后台挑选需要抓取的图片。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "配置管理"
+                ],
+                "summary": "预览枫枫图片同步",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "预览成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/crawl_ser.PreviewImageResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/settings/site_info/sync_fengfeng_preview": {
+            "get": {
+                "description": "仅抓取候选文章和重复统计，不写入数据库。适合后台先看有哪些文章会被新增或识别为重复。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "配置管理"
+                ],
+                "summary": "预览枫枫文章同步",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "扫描上限，-1=默认，0=全量，正数=指定条数",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "预览成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/crawl_ser.PreviewResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/settings/{name}": {
             "get": {
-                "description": "根据配置名称获取对应的系统配置。当前支持 site、email、qq、qiniu、jwt。",
+                "description": "根据配置名称获取对应的系统配置，支持 settings.yaml 的主要分组。",
                 "consumes": [
                     "application/json"
                 ],
@@ -2853,12 +4538,27 @@ const docTemplate = `{
                 "summary": "获取配置信息",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "enum": [
-                            "site",
+                            "system",
+                            "mysql",
+                            "logger",
                             "email",
+                            "jwt",
                             "qq",
                             "qiniu",
-                            "jwt"
+                            "upload",
+                            "redis",
+                            "es",
+                            "site",
+                            "site_info",
+                            "news"
                         ],
                         "type": "string",
                         "description": "配置名称",
@@ -2899,7 +4599,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "根据配置名称更新对应的配置信息。site、email、qq、qiniu、jwt 分别绑定到不同结构体。",
+                "description": "根据配置名称更新对应的配置信息，支持 settings.yaml 的主要分组。",
                 "consumes": [
                     "application/json"
                 ],
@@ -2912,12 +4612,27 @@ const docTemplate = `{
                 "summary": "更新配置信息",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "enum": [
-                            "site",
+                            "system",
+                            "mysql",
+                            "logger",
                             "email",
+                            "jwt",
                             "qq",
                             "qiniu",
-                            "jwt"
+                            "upload",
+                            "redis",
+                            "es",
+                            "site",
+                            "site_info",
+                            "news"
                         ],
                         "type": "string",
                         "description": "配置名称",
@@ -2950,6 +4665,2373 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "没有对应的配置信息",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/social/blocks": {
+            "get": {
+                "description": "返回当前用户拉黑的用户列表和拉黑原因。被拉黑用户之间无法继续私聊、关注或发起通话。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "获取黑名单",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/social_api.socialBlockItemDoc"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/social/blocks/{id}": {
+            "post": {
+                "description": "建立拉黑关系后，会自动清理双方之间的关注关系，后续也不能继续私聊和通话。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "拉黑用户",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "目标用户 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "拉黑原因",
+                        "name": "data",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/social_api.socialBlockRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "拉黑成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/social_api.socialRelationResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "移除黑名单关系后，双方仍需要重新关注才能恢复好友身份。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "取消拉黑用户",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "目标用户 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "取消成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/social_api.socialRelationResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/social/calls": {
+            "get": {
+                "description": "返回当前用户的语音通话记录，可按状态筛选，默认最多返回 30 条。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "获取通话记录",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "通话状态：ringing、rejected、missed、completed、canceled",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "返回条数，默认 30，最大 100",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/social_api.socialCallLogItem"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/social/conversations": {
+            "get": {
+                "description": "合并返回单聊和群聊会话，包含最新消息预览、未读数、在线状态、群成员数量等字段。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "获取会话列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/social_api.socialConversationItem"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/social/direct/messages": {
+            "get": {
+                "description": "按 user_id 获取当前用户与目标用户的完整单聊消息，并自动推进当前用户的已读游标。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "获取单聊消息列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "对方用户 ID",
+                        "name": "user_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/social_api.socialMessageResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "msg_type 为空时按文本消息处理；文件消息需要先通过社交文件上传接口拿到 file_id，而且双方必须是好友。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "发送单聊消息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "消息内容",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/social_api.socialDirectMessageRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "发送成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/social_api.socialMessageResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/social/discovery": {
+            "get": {
+                "description": "根据博客号、昵称、用户名或群组号进行搜索，返回用户关系状态和群组加入状态。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "搜索用户和群组",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "关键词，可输入博客号、昵称、用户名或群组号",
+                        "name": "key",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "搜索成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/social_api.socialDiscoveryResponseDoc"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/social/files": {
+            "post": {
+                "description": "上传单聊或群聊中要发送的文件。返回 file_id 后，再在消息接口里用该 ID 发送文件消息。",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "上传社交文件",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "文件内容",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "上传成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/social_api.socialFileUploadItem"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/social/files/{id}/download": {
+            "get": {
+                "description": "只有文件所有者、参与对应私聊会话的成员，或所在群成员，才能下载该文件。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "下载社交文件",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "文件 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "文件流",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/social/follows/{id}": {
+            "post": {
+                "description": "对目标用户建立单向关注。若双方互相关注且不存在拉黑关系，则会自动变成好友关系。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "关注用户",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "目标用户 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "关注成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/social_api.socialRelationResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "取消当前用户对目标用户的关注关系；如果原本是好友，也会同步失去好友关系。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "取消关注用户",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "目标用户 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "取消成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/social_api.socialRelationResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/social/friends": {
+            "get": {
+                "description": "返回当前用户的双向好友列表，并附带在线状态、最近消息和未读数。可选 key 做前端搜索过滤。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "获取好友列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "按好友昵称或用户名过滤",
+                        "name": "key",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/social_api.socialFollowCard"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/social/groups": {
+            "get": {
+                "description": "返回当前用户加入的群组信息、成员数量和会话 key，适合群聊列表页初始化。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "获取我的群组列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/social_api.socialGroupOverviewItemDoc"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "只能邀请自己的好友入群，群总人数上限 30。创建成功后会自动把群主自己加入成员列表。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "创建群组",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "群组信息",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/social_api.socialGroupCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "创建成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/social_api.socialGroupOverviewItemDoc"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/social/groups/join": {
+            "post": {
+                "description": "根据 group_no 加入目标群组。若已经在群里、群不存在或群人数已达上限，则会返回失败。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "通过群号加入群组",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "群号",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/social_api.socialGroupJoinRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "加入成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/social_api.socialJoinGroupResponseDoc"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/social/groups/{id}": {
+            "get": {
+                "description": "返回群基本信息、当前用户在群内的角色和完整成员列表。只有已入群成员才可查看。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "获取群组详情",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "群组 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/social_api.socialGroupDetailResponseDoc"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/social/groups/{id}/members": {
+            "post": {
+                "description": "只有群主和管理员可以操作，并且仅允许邀请自己的好友入群。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "邀请好友入群",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "群组 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "要加入的成员 ID 列表",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/social_api.socialGroupMemberSaveRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "操作成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/social_api.socialGroupMembersResponseDoc"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/social/groups/{id}/members/{user_id}": {
+            "delete": {
+                "description": "自己删除自己表示退群；管理员和群主可按权限移除其他成员；群主退出前必须先转让群主。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "移除群成员或退群",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "群组 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "目标用户 ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "移除成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/social_api.socialGroupMembersResponseDoc"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/social/groups/{id}/members/{user_id}/role": {
+            "put": {
+                "description": "只有群主可以把成员设置为 admin 或恢复为 member，不能直接修改群主自己的角色。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "设置群成员角色",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "群组 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "目标用户 ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "角色信息",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/social_api.socialGroupMemberRoleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "设置成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/social_api.socialGroupMembersResponseDoc"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/social/groups/{id}/messages": {
+            "get": {
+                "description": "返回指定群组的消息列表，并自动把当前用户已读游标推进到最后一条消息。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "获取群消息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "群组 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/social_api.socialMessageResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "支持文本和文件消息。文件消息需要先上传到社交文件接口拿到 file_id。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "发送群消息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "群组 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "消息内容",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/social_api.socialGroupMessageRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "发送成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/social_api.socialMessageResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/social/groups/{id}/transfer-owner": {
+            "put": {
+                "description": "只有当前群主可以把群主身份转给另一位现有群成员。转让成功后原群主会被降为管理员。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "转让群主",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "群组 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "新群主用户 ID",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/social_api.socialGroupTransferRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "转让成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/social_api.socialGroupMembersResponseDoc"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/social/manage/blocks": {
+            "get": {
+                "description": "支持分页和关键字搜索，便于后台审查拉黑关系和拉黑原因。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "获取黑名单列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量，最大 100",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "按用户昵称、用户名、用户 ID、原因搜索",
+                        "name": "key",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "count": {
+                                                    "type": "integer",
+                                                    "format": "int64"
+                                                },
+                                                "list": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/definitions/social_api.socialManageBlockItem"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/social/manage/follows": {
+            "get": {
+                "description": "mode=friend 返回双向好友，mode=follow 返回单向关注；支持分页和关键字搜索。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "获取社交关系列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量，最大 100",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "按用户昵称、用户名、用户 ID 搜索",
+                        "name": "key",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "关系模式：friend 或 follow",
+                        "name": "mode",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "count": {
+                                                    "type": "integer",
+                                                    "format": "int64"
+                                                },
+                                                "list": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/definitions/social_api.socialManageFollowItem"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/social/manage/groups": {
+            "get": {
+                "description": "支持分页和关键字搜索，可查看群号、群主、成员数量和最后更新时间。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "获取后台群组列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量，最大 100",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "按群名、群号、群主信息搜索",
+                        "name": "key",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "count": {
+                                                    "type": "integer",
+                                                    "format": "int64"
+                                                },
+                                                "list": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/definitions/social_api.socialManageGroupItem"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/social/manage/summary": {
+            "get": {
+                "description": "返回关注数、双向好友数、黑名单数、群组数、群成员数、在线人数等指标，适合作为后台面板顶部统计卡片数据。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "获取社交后台总览",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/social_api.socialManageOverviewResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/social/messages/search": {
+            "get": {
+                "description": "二选一传 user_id 或 group_id。只搜索当前用户有权访问的会话，已撤回消息不会出现在结果中。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "搜索会话消息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "单聊目标用户 ID",
+                        "name": "user_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "群组 ID",
+                        "name": "group_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "搜索关键词",
+                        "name": "keyword",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "返回条数，默认 20，最大 100",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "搜索成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/social_api.socialMessageResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/social/messages/{id}/recall": {
+            "post": {
+                "description": "发送人可撤回自己的消息；群主和群管理员可撤回群内消息；平台管理员可全局撤回。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "撤回消息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "消息 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "撤回成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/social_api.socialMessageResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/social/presence": {
+            "put": {
+                "description": "更新当前用户的在线模式、状态文案和隐身设置。前端切换忙碌、离开、隐身等状态时调用。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "更新在线状态",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "在线状态",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/social_api.socialPresenceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "更新成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/social_api.socialPresenceResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/social/relations/{id}": {
+            "get": {
+                "description": "返回是否已关注、是否互相关注、是否好友、是否存在拉黑关系，以及能否私聊、建群、发文件和语音通话。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "获取社交关系",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "目标用户 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/social_api.socialRelationResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/social/summary": {
+            "get": {
+                "description": "返回当前用户在线状态、好友数、在线好友数和黑名单数量。好友面板初始化时建议先调这个接口。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "获取社交摘要",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/social_api.socialSummaryResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/social/ws": {
+            "get": {
+                "description": "用于在线状态同步、实时私聊提醒、群消息通知和语音通话信令。token 可通过 query、token 头或 Authorization: Bearer 传入。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "社交系统"
+                ],
+                "summary": "建立社交 WebSocket 连接",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token，也可放在 header",
+                        "name": "token",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "自定义 token 头",
+                        "name": "token",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "101": {
+                        "description": "Switching Protocols",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "连接失败",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/space/messages": {
+            "post": {
+                "description": "可指定留言给哪个空间用户，并可选择是否私密。私密留言默认仅空间主人、留言人和管理员可见。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "发表空间留言",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "留言内容",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user_api.userSpaceMessageRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "发表成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.UserSpaceMessageModel"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/space/messages/{id}": {
+            "delete": {
+                "description": "管理员、空间主人和留言作者都可以删除该留言。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "删除空间留言",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "留言 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "删除成功",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/space/posts": {
+            "post": {
+                "description": "支持附带附件链接和是否私密。私密动态仅本人和管理员可见。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "发布空间动态",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "动态内容",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user_api.userSpacePostRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "发布成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.UserSpacePostModel"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/space/posts/{id}": {
+            "delete": {
+                "description": "只有空间主人或管理员可以删除空间动态。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "删除空间动态",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "动态 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "删除成功",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
                         "schema": {
                             "$ref": "#/definitions/res.Response"
                         }
@@ -3361,6 +7443,112 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/user_check_in": {
+            "post": {
+                "description": "每日仅允许签到一次。游客账号不可签到；连续签到会获得额外积分和经验奖励。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "用户签到",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "签到成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/user_api.UserCheckInResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user_check_in_status": {
+            "get": {
+                "description": "返回当前用户今天是否已签到、当前积分、经验、等级和连续签到天数。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "获取签到状态",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/user_api.UserCheckInStatusResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/user_create": {
             "post": {
                 "description": "创建新用户，支持设置昵称、用户名、密码和权限",
@@ -3469,6 +7657,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/user_level_rank": {
+            "get": {
+                "description": "按等级、经验、积分排序返回用户等级榜（游客账号默认不参与）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "获取用户等级排行榜",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "榜单数量，默认10，最大50",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/user_api.UserLevelRankItem"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/user_password": {
             "put": {
                 "description": "修改当前登录用户的密码",
@@ -3533,6 +7773,58 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "用户不存在",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user_register_email_code": {
+            "post": {
+                "description": "注册前发送邮箱验证码，验证码有效期 10 分钟",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "发送注册邮箱验证码",
+                "parameters": [
+                    {
+                        "description": "邮箱信息",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user_api.RegisterEmailCodeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "发送成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求错误",
                         "schema": {
                             "$ref": "#/definitions/res.Response"
                         }
@@ -3837,9 +8129,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/articles/{id}": {
+        "/api/users/{id}/profile": {
             "get": {
-                "description": "根据文章ID获取文章详细信息",
+                "description": "token 可选。未登录或访问他人空间时只会看到公开统计；本人或管理员可看到更多可管理状态。",
                 "consumes": [
                     "application/json"
                 ],
@@ -3847,13 +8139,19 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "文章管理"
+                    "用户管理"
                 ],
-                "summary": "获取文章详情",
+                "summary": "获取用户空间资料",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "文章ID",
+                        "description": "token，可选",
+                        "name": "token",
+                        "in": "header"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "用户 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -3871,7 +8169,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/models.ArticleModel"
+                                            "$ref": "#/definitions/user_api.userSpaceProfileResponse"
                                         }
                                     }
                                 }
@@ -3879,13 +8177,179 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求错误",
+                        "description": "请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/res.Response"
                         }
+                    }
+                }
+            }
+        },
+        "/api/users/{id}/space/messages": {
+            "get": {
+                "description": "token 可选。未登录时只能看到公开留言；登录后会额外看到自己留下的私密留言；空间主人和管理员可看全部。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "获取空间留言列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token，可选",
+                        "name": "token",
+                        "in": "header"
                     },
-                    "404": {
-                        "description": "文章不存在",
+                    {
+                        "type": "integer",
+                        "description": "空间用户 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量，默认 10，最大 50",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "按留言内容搜索",
+                        "name": "key",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "count": {
+                                                    "type": "integer",
+                                                    "format": "int64"
+                                                },
+                                                "list": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/definitions/models.UserSpaceMessageModel"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/res.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/users/{id}/space/posts": {
+            "get": {
+                "description": "token 可选。访问他人空间时默认只返回公开动态；本人或管理员可查看私密动态。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "获取空间动态列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token，可选",
+                        "name": "token",
+                        "in": "header"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "空间用户 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量，默认 10，最大 50",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "按动态内容搜索",
+                        "name": "key",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/res.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "count": {
+                                                    "type": "integer",
+                                                    "format": "int64"
+                                                },
+                                                "list": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/definitions/models.UserSpacePostModel"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/res.Response"
                         }
@@ -3918,6 +8382,86 @@ const docTemplate = `{
                 },
                 "title": {
                     "description": "显示的标题",
+                    "type": "string"
+                }
+            }
+        },
+        "announcement_api.announcementItem": {
+            "type": "object",
+            "properties": {
+                "board_id": {
+                    "type": "integer"
+                },
+                "board_name": {
+                    "type": "string"
+                },
+                "board_slug": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "ends_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_show": {
+                    "type": "boolean"
+                },
+                "jump_link": {
+                    "type": "string"
+                },
+                "level": {
+                    "type": "string"
+                },
+                "sort": {
+                    "type": "integer"
+                },
+                "starts_at": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "announcement_api.announcementSaveRequest": {
+            "type": "object",
+            "required": [
+                "content",
+                "title"
+            ],
+            "properties": {
+                "board_id": {
+                    "type": "integer"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "ends_at": {
+                    "type": "string"
+                },
+                "is_show": {
+                    "type": "boolean"
+                },
+                "jump_link": {
+                    "type": "string"
+                },
+                "level": {
+                    "type": "string"
+                },
+                "sort": {
+                    "type": "integer"
+                },
+                "starts_at": {
+                    "type": "string"
+                },
+                "title": {
                     "type": "string"
                 }
             }
@@ -3971,6 +8515,7 @@ const docTemplate = `{
         "article_api.ArticleRequest": {
             "type": "object",
             "required": [
+                "board_id",
                 "content",
                 "title"
             ],
@@ -3979,8 +8524,19 @@ const docTemplate = `{
                     "description": "文章简介",
                     "type": "string"
                 },
+                "attachments": {
+                    "description": "文章附件",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ArticleAttachment"
+                    }
+                },
                 "banner_id": {
                     "description": "文章封面id",
+                    "type": "integer"
+                },
+                "board_id": {
+                    "description": "文章板块",
                     "type": "integer"
                 },
                 "category": {
@@ -3990,6 +8546,10 @@ const docTemplate = `{
                 "content": {
                     "description": "文章内容",
                     "type": "string"
+                },
+                "is_private": {
+                    "description": "私密文章开关（仅作者/管理员可见）",
+                    "type": "boolean"
                 },
                 "link": {
                     "description": "原文链接",
@@ -4012,6 +8572,24 @@ const docTemplate = `{
                 }
             }
         },
+        "article_api.ArticleReviewRequest": {
+            "type": "object",
+            "required": [
+                "id",
+                "review_status"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "review_reason": {
+                    "type": "string"
+                },
+                "review_status": {
+                    "type": "integer"
+                }
+            }
+        },
         "article_api.ArticleUpdateRequest": {
             "type": "object",
             "properties": {
@@ -4019,8 +8597,17 @@ const docTemplate = `{
                     "description": "文章简介",
                     "type": "string"
                 },
+                "attachments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ArticleAttachment"
+                    }
+                },
                 "banner_id": {
                     "description": "文章封面id",
+                    "type": "integer"
+                },
+                "board_id": {
                     "type": "integer"
                 },
                 "category": {
@@ -4033,6 +8620,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                },
+                "is_private": {
+                    "type": "boolean"
                 },
                 "link": {
                     "description": "原文链接",
@@ -4084,12 +8674,27 @@ const docTemplate = `{
                     "description": "文章简介",
                     "type": "string"
                 },
+                "attachments": {
+                    "description": "附件列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ArticleAttachment"
+                    }
+                },
                 "banner_id": {
                     "description": "文章封面id",
                     "type": "integer"
                 },
                 "banner_url": {
                     "description": "文章封面",
+                    "type": "string"
+                },
+                "board_id": {
+                    "description": "板块ID",
+                    "type": "integer"
+                },
+                "board_name": {
+                    "description": "板块名称",
                     "type": "string"
                 },
                 "category": {
@@ -4115,9 +8720,25 @@ const docTemplate = `{
                     "description": "点赞量",
                     "type": "integer"
                 },
+                "duplicate_rate": {
+                    "description": "重复率（%）",
+                    "type": "number"
+                },
+                "duplicate_target_id": {
+                    "description": "最相似文章ID",
+                    "type": "string"
+                },
+                "duplicate_target_title": {
+                    "description": "最相似文章标题",
+                    "type": "string"
+                },
                 "id": {
                     "description": "es的id",
                     "type": "string"
+                },
+                "is_private": {
+                    "description": "是否私密，私密文章仅作者和管理员可见",
+                    "type": "boolean"
                 },
                 "keyword": {
                     "description": "关键字",
@@ -4130,6 +8751,30 @@ const docTemplate = `{
                 "look_count": {
                     "description": "浏览量",
                     "type": "integer"
+                },
+                "review_reason": {
+                    "description": "审核备注",
+                    "type": "string"
+                },
+                "review_status": {
+                    "description": "审核状态",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ctype.ArticleReviewStatus"
+                        }
+                    ]
+                },
+                "reviewed_at": {
+                    "description": "审核时间",
+                    "type": "string"
+                },
+                "reviewer_id": {
+                    "description": "审核人ID",
+                    "type": "integer"
+                },
+                "reviewer_nick_name": {
+                    "description": "审核人昵称",
+                    "type": "string"
                 },
                 "source": {
                     "description": "文章来源",
@@ -4258,6 +8903,156 @@ const docTemplate = `{
                 }
             }
         },
+        "article_api.articleReportCreateRequest": {
+            "type": "object",
+            "required": [
+                "article_id",
+                "reason"
+            ],
+            "properties": {
+                "article_id": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "article_api.articleReportHandleRequest": {
+            "type": "object",
+            "required": [
+                "id",
+                "status"
+            ],
+            "properties": {
+                "handle_note": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "board_api.boardItem": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
+                "deputy_moderator_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "deputy_moderator_user_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "description": "主键 ID",
+                    "type": "integer"
+                },
+                "is_enabled": {
+                    "type": "boolean"
+                },
+                "moderator_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "moderator_user_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "notice": {
+                    "type": "string"
+                },
+                "pinned_article_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "rules": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "sort": {
+                    "type": "integer"
+                }
+            }
+        },
+        "board_api.boardSaveRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "deputy_moderator_user_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_enabled": {
+                    "type": "boolean"
+                },
+                "moderator_user_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "notice": {
+                    "type": "string"
+                },
+                "pinned_article_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "rules": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "sort": {
+                    "type": "integer"
+                }
+            }
+        },
         "comment_api.CommentRequest": {
             "type": "object",
             "required": [
@@ -4276,6 +9071,331 @@ const docTemplate = `{
                     "type": "integer"
                 }
             }
+        },
+        "config.HomeLayout": {
+            "type": "object",
+            "properties": {
+                "advert_count": {
+                    "type": "integer"
+                },
+                "hot_count": {
+                    "type": "integer"
+                },
+                "level_count": {
+                    "type": "integer"
+                },
+                "orders": {
+                    "$ref": "#/definitions/config.HomeLayoutOrders"
+                },
+                "page_size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "config.HomeLayoutOrders": {
+            "type": "object",
+            "properties": {
+                "hot": {
+                    "type": "integer"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "profile": {
+                    "type": "integer"
+                }
+            }
+        },
+        "config.SiteInfo": {
+            "type": "object",
+            "properties": {
+                "addr": {
+                    "type": "string"
+                },
+                "auto_crawl_fengfeng_articles": {
+                    "description": "是否自动抓取枫枫知道文章",
+                    "type": "boolean"
+                },
+                "bei_an": {
+                    "type": "string"
+                },
+                "bilibili_url": {
+                    "type": "string"
+                },
+                "contact": {
+                    "description": "联系方式（手机号/微信/QQ文本）",
+                    "type": "string"
+                },
+                "crawler_nick_name": {
+                    "description": "自动抓取写入文章时使用的系统昵称",
+                    "type": "string"
+                },
+                "crawler_user_name": {
+                    "description": "自动抓取写入文章时使用的系统账号",
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "gitee_url": {
+                    "type": "string"
+                },
+                "github_url": {
+                    "type": "string"
+                },
+                "home_layout": {
+                    "description": "首页布局配置",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/config.HomeLayout"
+                        }
+                    ]
+                },
+                "job": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "profile": {
+                    "description": "个人介绍文案",
+                    "type": "string"
+                },
+                "qq_image": {
+                    "type": "string"
+                },
+                "service_url": {
+                    "description": "客服地址",
+                    "type": "string"
+                },
+                "slogan": {
+                    "type": "string"
+                },
+                "slogan_en": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                },
+                "web": {
+                    "type": "string"
+                },
+                "wechat_image": {
+                    "type": "string"
+                }
+            }
+        },
+        "crawl_ser.CrawlArticleCandidate": {
+            "type": "object",
+            "properties": {
+                "abstract": {
+                    "type": "string"
+                },
+                "article_id": {
+                    "type": "string"
+                },
+                "cover_url": {
+                    "type": "string"
+                },
+                "link": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "crawl_ser.CrawlImageCandidate": {
+            "type": "object",
+            "properties": {
+                "article_id": {
+                    "type": "string"
+                },
+                "article_title": {
+                    "type": "string"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "crawl_ser.PreviewImageResult": {
+            "type": "object",
+            "properties": {
+                "candidates": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/crawl_ser.CrawlImageCandidate"
+                    }
+                },
+                "duplicate_count": {
+                    "type": "integer"
+                },
+                "invalid_count": {
+                    "type": "integer"
+                },
+                "latest_scanned": {
+                    "type": "integer"
+                },
+                "new_candidate": {
+                    "type": "integer"
+                },
+                "source_total": {
+                    "type": "integer"
+                },
+                "sync_limit": {
+                    "type": "integer"
+                }
+            }
+        },
+        "crawl_ser.PreviewResult": {
+            "type": "object",
+            "properties": {
+                "candidates": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/crawl_ser.CrawlArticleCandidate"
+                    }
+                },
+                "duplicate_count": {
+                    "type": "integer"
+                },
+                "invalid_count": {
+                    "type": "integer"
+                },
+                "latest_scanned": {
+                    "type": "integer"
+                },
+                "new_candidate": {
+                    "type": "integer"
+                },
+                "source_total": {
+                    "type": "integer"
+                },
+                "sync_limit": {
+                    "type": "integer"
+                }
+            }
+        },
+        "crawl_ser.SyncImageResult": {
+            "type": "object",
+            "properties": {
+                "created": {
+                    "type": "integer"
+                },
+                "duplicate_count": {
+                    "type": "integer"
+                },
+                "failed_count": {
+                    "type": "integer"
+                },
+                "latest_scanned": {
+                    "type": "integer"
+                },
+                "selected_count": {
+                    "type": "integer"
+                },
+                "skipped": {
+                    "type": "integer"
+                },
+                "source_total": {
+                    "type": "integer"
+                },
+                "sync_limit": {
+                    "type": "integer"
+                }
+            }
+        },
+        "crawl_ser.SyncResult": {
+            "type": "object",
+            "properties": {
+                "created": {
+                    "type": "integer"
+                },
+                "duplicate_count": {
+                    "type": "integer"
+                },
+                "failed_count": {
+                    "type": "integer"
+                },
+                "latest_scanned": {
+                    "type": "integer"
+                },
+                "selected_count": {
+                    "type": "integer"
+                },
+                "skipped": {
+                    "type": "integer"
+                },
+                "source_total": {
+                    "type": "integer"
+                },
+                "sync_limit": {
+                    "type": "integer"
+                },
+                "updated_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "ctype.ArticleReportStatus": {
+            "type": "integer",
+            "enum": [
+                1,
+                2,
+                3
+            ],
+            "x-enum-comments": {
+                "ArticleReportDismissed": "已忽略",
+                "ArticleReportPending": "待处理",
+                "ArticleReportReReview": "已转复审"
+            },
+            "x-enum-descriptions": [
+                "待处理",
+                "已转复审",
+                "已忽略"
+            ],
+            "x-enum-varnames": [
+                "ArticleReportPending",
+                "ArticleReportReReview",
+                "ArticleReportDismissed"
+            ]
+        },
+        "ctype.ArticleReviewStatus": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3
+            ],
+            "x-enum-comments": {
+                "ArticleReviewApproved": "审核通过",
+                "ArticleReviewLegacy": "历史数据（默认视为已通过）",
+                "ArticleReviewPending": "待审核",
+                "ArticleReviewRejected": "审核驳回"
+            },
+            "x-enum-descriptions": [
+                "历史数据（默认视为已通过）",
+                "待审核",
+                "审核通过",
+                "审核驳回"
+            ],
+            "x-enum-varnames": [
+                "ArticleReviewLegacy",
+                "ArticleReviewPending",
+                "ArticleReviewApproved",
+                "ArticleReviewRejected"
+            ]
         },
         "ctype.ImageType": {
             "type": "integer",
@@ -4346,6 +9466,23 @@ const docTemplate = `{
                 "SignEmail"
             ]
         },
+        "data_api.AdminDataSumResponse": {
+            "type": "object",
+            "properties": {
+                "announcement_count": {
+                    "type": "integer"
+                },
+                "enabled_board_count": {
+                    "type": "integer"
+                },
+                "pending_article_report_count": {
+                    "type": "integer"
+                },
+                "pending_article_review_count": {
+                    "type": "integer"
+                }
+            }
+        },
         "data_api.DataSumResponse": {
             "type": "object",
             "properties": {
@@ -4404,6 +9541,112 @@ const docTemplate = `{
                 }
             }
         },
+        "es_ser.ArticleImportFailure": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "row": {
+                    "type": "integer"
+                },
+                "source_id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "es_ser.ArticleImportResult": {
+            "type": "object",
+            "properties": {
+                "completed": {
+                    "type": "string"
+                },
+                "created": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/es_ser.ArticleImportSuccess"
+                    }
+                },
+                "failed": {
+                    "type": "integer"
+                },
+                "failures": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/es_ser.ArticleImportFailure"
+                    }
+                },
+                "index": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "es_ser.ArticleImportSuccess": {
+            "type": "object",
+            "properties": {
+                "new_id": {
+                    "type": "string"
+                },
+                "row": {
+                    "type": "integer"
+                },
+                "source_id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "es_ser.ESIndexSummary": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "docs_count": {
+                    "type": "integer"
+                },
+                "export_supported": {
+                    "type": "boolean"
+                },
+                "import_supported": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "file_api.FileUploadItem": {
+            "type": "object",
+            "properties": {
+                "ext": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
         "images_api.ImageUpdateRequest": {
             "type": "object",
             "required": [
@@ -4442,6 +9685,28 @@ const docTemplate = `{
                 },
                 "level": {
                     "description": "日志的等级",
+                    "type": "integer"
+                },
+                "method": {
+                    "description": "请求方法",
+                    "type": "string"
+                },
+                "path": {
+                    "description": "接口地址",
+                    "type": "string"
+                },
+                "request_body": {
+                    "type": "string"
+                },
+                "resp_code": {
+                    "description": "业务状态码",
+                    "type": "integer"
+                },
+                "response_body": {
+                    "type": "string"
+                },
+                "status_code": {
+                    "description": "HTTP 状态码",
                     "type": "integer"
                 },
                 "user_id": {
@@ -4676,6 +9941,23 @@ const docTemplate = `{
                 }
             }
         },
+        "models.ArticleAttachment": {
+            "type": "object",
+            "properties": {
+                "file_id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
         "models.ArticleModel": {
             "type": "object",
             "properties": {
@@ -4683,12 +9965,27 @@ const docTemplate = `{
                     "description": "文章简介",
                     "type": "string"
                 },
+                "attachments": {
+                    "description": "附件列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ArticleAttachment"
+                    }
+                },
                 "banner_id": {
                     "description": "文章封面id",
                     "type": "integer"
                 },
                 "banner_url": {
                     "description": "文章封面",
+                    "type": "string"
+                },
+                "board_id": {
+                    "description": "板块ID",
+                    "type": "integer"
+                },
+                "board_name": {
+                    "description": "板块名称",
                     "type": "string"
                 },
                 "category": {
@@ -4715,9 +10012,25 @@ const docTemplate = `{
                     "description": "点赞量",
                     "type": "integer"
                 },
+                "duplicate_rate": {
+                    "description": "重复率（%）",
+                    "type": "number"
+                },
+                "duplicate_target_id": {
+                    "description": "最相似文章ID",
+                    "type": "string"
+                },
+                "duplicate_target_title": {
+                    "description": "最相似文章标题",
+                    "type": "string"
+                },
                 "id": {
                     "description": "es的id",
                     "type": "string"
+                },
+                "is_private": {
+                    "description": "是否私密，私密文章仅作者和管理员可见",
+                    "type": "boolean"
                 },
                 "keyword": {
                     "description": "关键字",
@@ -4730,6 +10043,30 @@ const docTemplate = `{
                 "look_count": {
                     "description": "浏览量",
                     "type": "integer"
+                },
+                "review_reason": {
+                    "description": "审核备注",
+                    "type": "string"
+                },
+                "review_status": {
+                    "description": "审核状态",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ctype.ArticleReviewStatus"
+                        }
+                    ]
+                },
+                "reviewed_at": {
+                    "description": "审核时间",
+                    "type": "string"
+                },
+                "reviewer_id": {
+                    "description": "审核人ID",
+                    "type": "integer"
+                },
+                "reviewer_nick_name": {
+                    "description": "审核人昵称",
+                    "type": "string"
                 },
                 "source": {
                     "description": "文章来源",
@@ -4764,6 +10101,58 @@ const docTemplate = `{
                 }
             }
         },
+        "models.ArticleReportModel": {
+            "type": "object",
+            "properties": {
+                "article_id": {
+                    "type": "string"
+                },
+                "article_title": {
+                    "type": "string"
+                },
+                "board_id": {
+                    "type": "integer"
+                },
+                "board_name": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
+                "handle_note": {
+                    "type": "string"
+                },
+                "handled_at": {
+                    "type": "string"
+                },
+                "handler_user_id": {
+                    "type": "integer"
+                },
+                "handler_user_nick_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "description": "主键 ID",
+                    "type": "integer"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "reporter_nick_name": {
+                    "type": "string"
+                },
+                "reporter_user_id": {
+                    "type": "integer"
+                },
+                "status": {
+                    "$ref": "#/definitions/ctype.ArticleReportStatus"
+                }
+            }
+        },
         "models.BannerModel": {
             "type": "object",
             "properties": {
@@ -4778,6 +10167,9 @@ const docTemplate = `{
                 "id": {
                     "description": "主键 ID",
                     "type": "integer"
+                },
+                "image_category": {
+                    "type": "string"
                 },
                 "image_type": {
                     "description": "图片来源类型：本地或云存储",
@@ -4794,6 +10186,61 @@ const docTemplate = `{
                 "path": {
                     "description": "图片访问路径",
                     "type": "string"
+                },
+                "source_url": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.BoardModel": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
+                "deputy_moderator_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "description": "主键 ID",
+                    "type": "integer"
+                },
+                "is_enabled": {
+                    "type": "boolean"
+                },
+                "moderator_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "notice": {
+                    "type": "string"
+                },
+                "pinned_article_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "rules": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "sort": {
+                    "type": "integer"
                 }
             }
         },
@@ -4850,7 +10297,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "comment_model": {
-                    "description": "父级评论",
+                    "description": "父级评论（子评论 @ 引用时使用）",
                     "allOf": [
                         {
                             "$ref": "#/definitions/models.CommentModel"
@@ -4987,12 +10434,33 @@ const docTemplate = `{
         },
         "models.RemoveRequest": {
             "type": "object",
+            "required": [
+                "id_list"
+            ],
             "properties": {
                 "id_list": {
                     "type": "array",
+                    "minItems": 1,
                     "items": {
                         "type": "integer"
                     }
+                }
+            }
+        },
+        "models.SpaceAttachment": {
+            "type": "object",
+            "properties": {
+                "file_id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "url": {
+                    "type": "string"
                 }
             }
         },
@@ -5024,6 +10492,10 @@ const docTemplate = `{
                     "description": "头像id",
                     "type": "string"
                 },
+                "check_in_streak": {
+                    "description": "连续签到天数",
+                    "type": "integer"
+                },
                 "created_at": {
                     "description": "创建时间",
                     "type": "string"
@@ -5031,6 +10503,10 @@ const docTemplate = `{
                 "email": {
                     "description": "邮箱",
                     "type": "string"
+                },
+                "experience": {
+                    "description": "经验",
+                    "type": "integer"
                 },
                 "id": {
                     "description": "主键 ID",
@@ -5040,6 +10516,14 @@ const docTemplate = `{
                     "description": "ip地址",
                     "type": "string"
                 },
+                "last_check_in_at": {
+                    "description": "上次签到时间",
+                    "type": "string"
+                },
+                "level": {
+                    "description": "等级",
+                    "type": "integer"
+                },
                 "link": {
                     "description": "链接",
                     "type": "string"
@@ -5047,6 +10531,10 @@ const docTemplate = `{
                 "nick_name": {
                     "description": "昵称",
                     "type": "string"
+                },
+                "points": {
+                    "description": "积分",
+                    "type": "integer"
                 },
                 "role": {
                     "description": "权限  1 管理员  2 普通用户  3 游客",
@@ -5082,11 +10570,79 @@ const docTemplate = `{
                 }
             }
         },
+        "models.UserSpaceMessageModel": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "主键 ID",
+                    "type": "integer"
+                },
+                "is_private": {
+                    "type": "boolean"
+                },
+                "space_user_id": {
+                    "type": "integer"
+                },
+                "user_avatar": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                },
+                "user_nick_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UserSpacePostModel": {
+            "type": "object",
+            "properties": {
+                "attachments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.SpaceAttachment"
+                    }
+                },
+                "content": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "主键 ID",
+                    "type": "integer"
+                },
+                "is_private": {
+                    "type": "boolean"
+                },
+                "user_avatar": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                },
+                "user_nick_name": {
+                    "type": "string"
+                }
+            }
+        },
         "new_api.NewsSource": {
             "type": "object",
             "properties": {
                 "category": {
                     "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
                 },
                 "icon": {
                     "type": "string"
@@ -5153,6 +10709,953 @@ const docTemplate = `{
                 }
             }
         },
+        "settings_api.settingsSyncFengfengArticlesRequest": {
+            "type": "object",
+            "properties": {
+                "article_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "article_demo_001",
+                        "article_demo_002"
+                    ]
+                },
+                "include_update": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "limit": {
+                    "type": "integer",
+                    "example": 20
+                },
+                "sync_all": {
+                    "type": "boolean",
+                    "example": false
+                }
+            }
+        },
+        "settings_api.settingsSyncFengfengImagesRequest": {
+            "type": "object",
+            "properties": {
+                "image_urls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "https://static.example.com/demo-1.jpg",
+                        "https://static.example.com/demo-2.jpg"
+                    ]
+                },
+                "sync_all": {
+                    "type": "boolean",
+                    "example": false
+                }
+            }
+        },
+        "social_api.socialBlockItemDoc": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string",
+                    "example": "/uploads/avatar/blocked.png"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-03-08 10:30:00"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "nick_name": {
+                    "type": "string",
+                    "example": "被拉黑用户"
+                },
+                "reason": {
+                    "type": "string",
+                    "example": "频繁骚扰"
+                },
+                "user_id": {
+                    "type": "integer",
+                    "example": 2
+                },
+                "user_name": {
+                    "type": "string",
+                    "example": "blocked_user"
+                }
+            }
+        },
+        "social_api.socialBlockRequest": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "social_api.socialCallLogItem": {
+            "type": "object",
+            "properties": {
+                "answered_at": {
+                    "type": "string"
+                },
+                "call_id": {
+                    "type": "string"
+                },
+                "conversation_key": {
+                    "type": "string"
+                },
+                "direction": {
+                    "type": "string"
+                },
+                "duration_sec": {
+                    "type": "integer"
+                },
+                "ended_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_missed": {
+                    "type": "boolean"
+                },
+                "partner_avatar": {
+                    "type": "string"
+                },
+                "partner_nick_name": {
+                    "type": "string"
+                },
+                "partner_user_id": {
+                    "type": "integer"
+                },
+                "started_at": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "status_label": {
+                    "type": "string"
+                }
+            }
+        },
+        "social_api.socialConversationItem": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "conversation_key": {
+                    "type": "string"
+                },
+                "conversation_type": {
+                    "type": "string"
+                },
+                "group_id": {
+                    "type": "integer"
+                },
+                "is_friend": {
+                    "type": "boolean"
+                },
+                "is_online": {
+                    "type": "boolean"
+                },
+                "last_active_at": {
+                    "type": "string"
+                },
+                "latest_at": {
+                    "type": "string"
+                },
+                "latest_message": {
+                    "type": "string"
+                },
+                "latest_message_id": {
+                    "type": "integer"
+                },
+                "latest_message_type": {
+                    "type": "string"
+                },
+                "member_count": {
+                    "type": "integer"
+                },
+                "presence_mode": {
+                    "type": "string"
+                },
+                "presence_text": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "unread_count": {
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "social_api.socialDirectMessageRequest": {
+            "type": "object",
+            "required": [
+                "rev_user_id"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "file_id": {
+                    "type": "integer"
+                },
+                "msg_type": {
+                    "type": "string"
+                },
+                "rev_user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "social_api.socialDiscoveryGroupItem": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "group_no": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_joined": {
+                    "type": "boolean"
+                },
+                "member_count": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "notice": {
+                    "type": "string"
+                },
+                "owner_user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "social_api.socialDiscoveryResponseDoc": {
+            "type": "object",
+            "properties": {
+                "groups": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/social_api.socialDiscoveryGroupItem"
+                    }
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/social_api.socialDiscoveryUserItem"
+                    }
+                }
+            }
+        },
+        "social_api.socialDiscoveryUserItem": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "blog_no": {
+                    "type": "integer"
+                },
+                "is_online": {
+                    "type": "boolean"
+                },
+                "is_self": {
+                    "type": "boolean"
+                },
+                "last_active_at": {
+                    "type": "string"
+                },
+                "nick_name": {
+                    "type": "string"
+                },
+                "relation": {
+                    "$ref": "#/definitions/social_api.socialRelationResponse"
+                },
+                "user_id": {
+                    "type": "integer"
+                },
+                "user_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "social_api.socialFileUploadItem": {
+            "type": "object",
+            "properties": {
+                "ext": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "mime": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "social_api.socialFollowCard": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "blocked_by_them": {
+                    "type": "boolean"
+                },
+                "blog_no": {
+                    "type": "integer"
+                },
+                "can_call": {
+                    "type": "boolean"
+                },
+                "can_create_group": {
+                    "type": "boolean"
+                },
+                "can_direct_message": {
+                    "type": "boolean"
+                },
+                "can_send_file": {
+                    "type": "boolean"
+                },
+                "follows_me": {
+                    "type": "boolean"
+                },
+                "is_blocked": {
+                    "type": "boolean"
+                },
+                "is_following": {
+                    "type": "boolean"
+                },
+                "is_friend": {
+                    "type": "boolean"
+                },
+                "is_invisible": {
+                    "type": "boolean"
+                },
+                "is_online": {
+                    "type": "boolean"
+                },
+                "last_active_at": {
+                    "type": "string"
+                },
+                "last_message_at": {
+                    "type": "string"
+                },
+                "last_message_preview": {
+                    "type": "string"
+                },
+                "nick_name": {
+                    "type": "string"
+                },
+                "presence_mode": {
+                    "type": "string"
+                },
+                "presence_text": {
+                    "type": "string"
+                },
+                "unread_count": {
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "integer"
+                },
+                "user_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "social_api.socialGroupCreateRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "member_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "notice": {
+                    "type": "string"
+                }
+            }
+        },
+        "social_api.socialGroupDetailResponseDoc": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string",
+                    "example": "/uploads/group/default.png"
+                },
+                "can_manage": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "conversation_key": {
+                    "type": "string",
+                    "example": "group:1"
+                },
+                "group_no": {
+                    "type": "string",
+                    "example": "G000001"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "members": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/social_api.socialGroupMemberItem"
+                    }
+                },
+                "name": {
+                    "type": "string",
+                    "example": "产品讨论群"
+                },
+                "notice": {
+                    "type": "string",
+                    "example": "仅讨论产品需求和 Bug"
+                },
+                "owner_user_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "viewer_role": {
+                    "type": "string",
+                    "example": "owner"
+                },
+                "viewer_role_label": {
+                    "type": "string",
+                    "example": "群主"
+                }
+            }
+        },
+        "social_api.socialGroupJoinRequest": {
+            "type": "object",
+            "required": [
+                "group_no"
+            ],
+            "properties": {
+                "group_no": {
+                    "type": "string"
+                }
+            }
+        },
+        "social_api.socialGroupMemberItem": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "blog_no": {
+                    "type": "integer"
+                },
+                "nick_name": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "role_label": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                },
+                "user_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "social_api.socialGroupMemberRoleRequest": {
+            "type": "object",
+            "required": [
+                "role"
+            ],
+            "properties": {
+                "role": {
+                    "type": "string"
+                }
+            }
+        },
+        "social_api.socialGroupMemberSaveRequest": {
+            "type": "object",
+            "required": [
+                "member_ids"
+            ],
+            "properties": {
+                "member_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "social_api.socialGroupMembersResponseDoc": {
+            "type": "object",
+            "properties": {
+                "members": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/social_api.socialGroupMemberItem"
+                    }
+                }
+            }
+        },
+        "social_api.socialGroupMessageRequest": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "file_id": {
+                    "type": "integer"
+                },
+                "msg_type": {
+                    "type": "string"
+                }
+            }
+        },
+        "social_api.socialGroupOverviewItemDoc": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string",
+                    "example": "/uploads/group/default.png"
+                },
+                "conversation_key": {
+                    "type": "string",
+                    "example": "group:1"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-03-08T10:00:00+08:00"
+                },
+                "group_no": {
+                    "type": "string",
+                    "example": "G000001"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "member_count": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "member_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "example": [
+                        1,
+                        2,
+                        3
+                    ]
+                },
+                "name": {
+                    "type": "string",
+                    "example": "产品讨论群"
+                },
+                "notice": {
+                    "type": "string",
+                    "example": "仅讨论产品需求和 Bug"
+                },
+                "owner_user_id": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "social_api.socialGroupTransferRequest": {
+            "type": "object",
+            "required": [
+                "user_id"
+            ],
+            "properties": {
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "social_api.socialJoinGroupResponseDoc": {
+            "type": "object",
+            "properties": {
+                "conversation_key": {
+                    "type": "string",
+                    "example": "group:1"
+                },
+                "group_no": {
+                    "type": "string",
+                    "example": "G000001"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "name": {
+                    "type": "string",
+                    "example": "产品讨论群"
+                }
+            }
+        },
+        "social_api.socialManageBlockItem": {
+            "type": "object",
+            "properties": {
+                "block_nick_name": {
+                    "type": "string"
+                },
+                "block_user_avatar": {
+                    "type": "string"
+                },
+                "block_user_id": {
+                    "type": "integer"
+                },
+                "block_user_name": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "user_avatar": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                },
+                "user_name": {
+                    "type": "string"
+                },
+                "user_nick_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "social_api.socialManageFollowItem": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "follow_nick_name": {
+                    "type": "string"
+                },
+                "follow_user_avatar": {
+                    "type": "string"
+                },
+                "follow_user_id": {
+                    "type": "integer"
+                },
+                "follow_user_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_friend": {
+                    "type": "boolean"
+                },
+                "user_avatar": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                },
+                "user_name": {
+                    "type": "string"
+                },
+                "user_nick_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "social_api.socialManageGroupItem": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "group_no": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "member_count": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "notice": {
+                    "type": "string"
+                },
+                "owner_name": {
+                    "type": "string"
+                },
+                "owner_user_id": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "social_api.socialManageOverviewResponse": {
+            "type": "object",
+            "properties": {
+                "block_count": {
+                    "type": "integer"
+                },
+                "follow_count": {
+                    "type": "integer"
+                },
+                "group_count": {
+                    "type": "integer"
+                },
+                "group_member_count": {
+                    "type": "integer"
+                },
+                "mutual_friend_count": {
+                    "type": "integer"
+                },
+                "online_user_count": {
+                    "type": "integer"
+                },
+                "presence_user_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "social_api.socialMessageResponse": {
+            "type": "object",
+            "properties": {
+                "can_recall": {
+                    "type": "boolean"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "conversation_key": {
+                    "type": "string"
+                },
+                "conversation_type": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
+                "extra": {
+                    "type": "string"
+                },
+                "file_id": {
+                    "type": "integer"
+                },
+                "file_mime": {
+                    "type": "string"
+                },
+                "file_name": {
+                    "type": "string"
+                },
+                "file_size": {
+                    "type": "integer"
+                },
+                "file_url": {
+                    "type": "string"
+                },
+                "group_id": {
+                    "type": "integer"
+                },
+                "id": {
+                    "description": "主键 ID",
+                    "type": "integer"
+                },
+                "is_mine": {
+                    "type": "boolean"
+                },
+                "is_read": {
+                    "type": "boolean"
+                },
+                "is_recalled": {
+                    "type": "boolean"
+                },
+                "member_count": {
+                    "type": "integer"
+                },
+                "msg_type": {
+                    "type": "string"
+                },
+                "read_count": {
+                    "type": "integer"
+                },
+                "read_status_text": {
+                    "type": "string"
+                },
+                "read_user_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "recalled_at": {
+                    "type": "string"
+                },
+                "recalled_by": {
+                    "type": "integer"
+                },
+                "receive_user_avatar": {
+                    "type": "string"
+                },
+                "receive_user_id": {
+                    "type": "integer"
+                },
+                "receive_user_nick_name": {
+                    "type": "string"
+                },
+                "related_call_id": {
+                    "type": "string"
+                },
+                "send_user_avatar": {
+                    "type": "string"
+                },
+                "send_user_id": {
+                    "type": "integer"
+                },
+                "send_user_nick_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "social_api.socialPresenceRequest": {
+            "type": "object",
+            "properties": {
+                "is_invisible": {
+                    "type": "boolean"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "status_text": {
+                    "type": "string"
+                }
+            }
+        },
+        "social_api.socialPresenceResponse": {
+            "type": "object",
+            "properties": {
+                "is_invisible": {
+                    "type": "boolean"
+                },
+                "is_online": {
+                    "type": "boolean"
+                },
+                "last_active_at": {
+                    "type": "string"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "status_text": {
+                    "type": "string"
+                }
+            }
+        },
+        "social_api.socialRelationResponse": {
+            "type": "object",
+            "properties": {
+                "blocked_by_them": {
+                    "type": "boolean"
+                },
+                "can_call": {
+                    "type": "boolean"
+                },
+                "can_create_group": {
+                    "type": "boolean"
+                },
+                "can_direct_message": {
+                    "type": "boolean"
+                },
+                "can_send_file": {
+                    "type": "boolean"
+                },
+                "follows_me": {
+                    "type": "boolean"
+                },
+                "is_blocked": {
+                    "type": "boolean"
+                },
+                "is_following": {
+                    "type": "boolean"
+                },
+                "is_friend": {
+                    "type": "boolean"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "social_api.socialSummaryResponse": {
+            "type": "object",
+            "properties": {
+                "block_count": {
+                    "type": "integer"
+                },
+                "friend_count": {
+                    "type": "integer"
+                },
+                "online_friend_count": {
+                    "type": "integer"
+                },
+                "presence": {
+                    "$ref": "#/definitions/social_api.socialPresenceResponse"
+                }
+            }
+        },
         "tag_api.TagRequest": {
             "type": "object",
             "required": [
@@ -5208,10 +11711,20 @@ const docTemplate = `{
                 }
             }
         },
+        "user_api.RegisterEmailCodeRequest": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
         "user_api.UpdatePasswordRequest": {
             "type": "object",
             "required": [
-                "old_pwd",
                 "pwd"
             ],
             "properties": {
@@ -5222,6 +11735,61 @@ const docTemplate = `{
                 "pwd": {
                     "description": "新密码",
                     "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "user_api.UserCheckInResponse": {
+            "type": "object",
+            "properties": {
+                "check_in_date": {
+                    "type": "string"
+                },
+                "checked_today": {
+                    "type": "boolean"
+                },
+                "experience": {
+                    "type": "integer"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "points": {
+                    "type": "integer"
+                },
+                "reward_experience": {
+                    "type": "integer"
+                },
+                "reward_points": {
+                    "type": "integer"
+                },
+                "streak": {
+                    "type": "integer"
+                }
+            }
+        },
+        "user_api.UserCheckInStatusResponse": {
+            "type": "object",
+            "properties": {
+                "check_in_date": {
+                    "type": "string"
+                },
+                "checked_today": {
+                    "type": "boolean"
+                },
+                "experience": {
+                    "type": "integer"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "points": {
+                    "type": "integer"
+                },
+                "streak": {
+                    "type": "integer"
                 }
             }
         },
@@ -5234,6 +11802,9 @@ const docTemplate = `{
                 "user_name"
             ],
             "properties": {
+                "code": {
+                    "type": "string"
+                },
                 "email": {
                     "type": "string"
                 },
@@ -5245,6 +11816,35 @@ const docTemplate = `{
                 },
                 "role": {
                     "$ref": "#/definitions/ctype.Role"
+                },
+                "user_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "user_api.UserLevelRankItem": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "check_in_streak": {
+                    "type": "integer"
+                },
+                "experience": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "nick_name": {
+                    "type": "string"
+                },
+                "points": {
+                    "type": "integer"
                 },
                 "user_name": {
                     "type": "string"
@@ -5283,6 +11883,9 @@ const docTemplate = `{
         "user_api.UserUpdateNicknameRequest": {
             "type": "object",
             "properties": {
+                "avatar": {
+                    "type": "string"
+                },
                 "link": {
                     "type": "string"
                 },
@@ -5290,6 +11893,108 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "sign": {
+                    "type": "string"
+                }
+            }
+        },
+        "user_api.userSpaceMessageRequest": {
+            "type": "object",
+            "required": [
+                "content",
+                "space_user_id"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "is_private": {
+                    "type": "boolean"
+                },
+                "space_user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "user_api.userSpacePostRequest": {
+            "type": "object",
+            "required": [
+                "content"
+            ],
+            "properties": {
+                "attachments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.SpaceAttachment"
+                    }
+                },
+                "content": {
+                    "type": "string"
+                },
+                "is_private": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "user_api.userSpaceProfileResponse": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "can_manage_space": {
+                    "type": "boolean"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "experience": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_self": {
+                    "type": "boolean"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "link": {
+                    "type": "string"
+                },
+                "managed_boards": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "nick_name": {
+                    "type": "string"
+                },
+                "points": {
+                    "type": "integer"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "sign": {
+                    "type": "string"
+                },
+                "stats": {
+                    "type": "object",
+                    "properties": {
+                        "article_count": {
+                            "type": "integer"
+                        },
+                        "guestbook_count": {
+                            "type": "integer"
+                        },
+                        "post_count": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "user_name": {
                     "type": "string"
                 }
             }

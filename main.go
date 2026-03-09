@@ -48,6 +48,8 @@ func main() {
 			&models.SocialMessageModel{},
 			&models.SocialConversationReadModel{},
 			&models.SocialCallLogModel{},
+			&models.CommunityPostModel{},
+			&models.CommunityReplyModel{},
 			&models.UserSpacePostModel{},
 			&models.UserSpaceMessageModel{},
 			&log_stash.LogStashModel{},

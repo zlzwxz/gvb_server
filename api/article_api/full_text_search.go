@@ -21,7 +21,7 @@ import (
 // @Param key query string false "搜索关键词"
 // @Success 200 {object} res.Response{data=object{count=int64,list=[]models.FullTextModel}} "搜索成功"
 // @Failure 400 {object} res.Response "请求错误"
-// @Router /api/articles/search [get]
+// @Router /api/article/text [get]
 func (ArticleApi) FullTextSearchView(c *gin.Context) {
 	var cr models.PageInfo
 	_ = c.ShouldBindQuery(&cr)

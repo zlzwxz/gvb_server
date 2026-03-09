@@ -36,6 +36,8 @@ func Makemigrations() {
 			&models.SocialGroupMemberModel{},
 			&models.SocialMessageModel{},
 			&models.SocialConversationReadModel{},
+			&models.CommunityPostModel{},
+			&models.CommunityReplyModel{},
 			&models.ChatModel{},
 			&models.UserSpacePostModel{},
 			&models.UserSpaceMessageModel{},

@@ -1,0 +1,1358 @@
+{
+  "info": {
+    "name": "GVB Server Detailed API Collection",
+    "_postman_id": "3a4bb594-bdb8-4c46-a2ad-7a66fb4b2026",
+    "description": "Representative collection for the completed Swagger modules. Pair it with docs/API_DOCUMENTATION_DETAILED.md and docs/GVB_Server.postman_environment.json.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 ??????",
+      "item": [
+        {
+          "name": "???????",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user_register_email_code",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user_register_email_code"
+              ]
+            },
+            "description": "??????????",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{registerEmail}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is expected', function () { pm.expect(pm.response.code).to.be.oneOf([200,400,401,403,404]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "??????",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user_create",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user_create"
+              ]
+            },
+            "description": "?????role ???????????",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nick_name\": \"????\",\n  \"user_name\": \"{{userName}}\",\n  \"email\": \"{{registerEmail}}\",\n  \"code\": \"{{registerCode}}\",\n  \"password\": \"{{userPassword}}\",\n  \"role\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is expected', function () { pm.expect(pm.response.code).to.be.oneOf([200,400,401,403,404]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "????",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/email_login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "email_login"
+              ]
+            },
+            "description": "?????? data ?? token",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_name\": \"{{userName}}\",\n  \"password\": \"{{userPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is expected', function () { pm.expect(pm.response.code).to.be.oneOf([200,400,401,403,404]); });",
+                  "const json = pm.response.json();",
+                  "if (json && json.code === 0) {",
+                  "  if (json.data) pm.environment.set('token', json.data);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "?????",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/email_login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "email_login"
+              ]
+            },
+            "description": "?????? data ?? adminToken",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_name\": \"{{adminUserName}}\",\n  \"password\": \"{{adminPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is expected', function () { pm.expect(pm.response.code).to.be.oneOf([200,400,401,403,404]); });",
+                  "const json = pm.response.json();",
+                  "if (json && json.code === 0) {",
+                  "  if (json.data) pm.environment.set('adminToken', json.data);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "????????",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user_info",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user_info"
+              ]
+            },
+            "description": "?? token ????"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is expected', function () { pm.expect(pm.response.code).to.be.oneOf([200,400,401,403,404]); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 ????? ES ??",
+      "item": [
+        {
+          "name": "????????",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/settings/public/site_info",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "settings",
+                "public",
+                "site_info"
+              ]
+            },
+            "description": "????????????"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is expected', function () { pm.expect(pm.response.code).to.be.oneOf([200,400,401,403,404]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "????????",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "token",
+                "value": "{{adminToken}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/settings/site_info/sync_fengfeng_preview",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "settings",
+                "site_info",
+                "sync_fengfeng_preview"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "??????????????"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is expected', function () { pm.expect(pm.response.code).to.be.oneOf([200,400,401,403,404]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "????????",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "token",
+                "value": "{{adminToken}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/settings/site_info/sync_fengfeng",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "settings",
+                "site_info",
+                "sync_fengfeng"
+              ]
+            },
+            "description": "???? article_ids ? sync_all",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"article_ids\": [\n    \"ff_demo_001\",\n    \"ff_demo_002\"\n  ],\n  \"sync_all\": false,\n  \"include_update\": true,\n  \"limit\": 20\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is expected', function () { pm.expect(pm.response.code).to.be.oneOf([200,400,401,403,404]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "?? ES ????",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "token",
+                "value": "{{adminToken}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/settings/es/indices",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "settings",
+                "es",
+                "indices"
+              ]
+            },
+            "description": "??????????????"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is expected', function () { pm.expect(pm.response.code).to.be.oneOf([200,400,401,403,404]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "?? ES ????",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "token",
+                "value": "{{adminToken}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/settings/es/import",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "settings",
+                "es",
+                "import"
+              ]
+            },
+            "description": "??????? article_index",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "index",
+                  "value": "article_index",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "src": "{{importJsonPath}}",
+                  "type": "file"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is expected', function () { pm.expect(pm.response.code).to.be.oneOf([200,400,401,403,404]); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 ????",
+      "item": [
+        {
+          "name": "??????",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/social/summary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "social",
+                "summary"
+              ]
+            },
+            "description": "???????????"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is expected', function () { pm.expect(pm.response.code).to.be.oneOf([200,400,401,403,404]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "???????",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/social/discovery",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "social",
+                "discovery"
+              ],
+              "query": [
+                {
+                  "key": "key",
+                  "value": "2"
+                }
+              ]
+            },
+            "description": "?????????????????"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is expected', function () { pm.expect(pm.response.code).to.be.oneOf([200,400,401,403,404]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "??????",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/social/direct/messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "social",
+                "direct",
+                "messages"
+              ]
+            },
+            "description": "?????????????? file_id",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rev_user_id\": 2,\n  \"content\": \"????????? Postman ??????\",\n  \"msg_type\": \"text\",\n  \"file_id\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is expected', function () { pm.expect(pm.response.code).to.be.oneOf([200,400,401,403,404]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "????",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/social/groups",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "social",
+                "groups"
+              ]
+            },
+            "description": "??????????? 30 ?",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"?????\",\n  \"notice\": \"???????? Bug\",\n  \"member_ids\": [\n    2,\n    3\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is expected', function () { pm.expect(pm.response.code).to.be.oneOf([200,400,401,403,404]); });",
+                  "const json = pm.response.json();",
+                  "if (json && json.code === 0) {",
+                  "  if (json.data && json.data.id) pm.environment.set('groupId', json.data && json.data.id);",
+                  "  if (json.data && json.data.group_no) pm.environment.set('groupNo', json.data && json.data.group_no);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "??????",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/social/presence",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "social",
+                "presence"
+              ]
+            },
+            "description": "mode ?? online/busy/away/invisible",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mode\": \"busy\",\n  \"status_text\": \"????????? Postman\",\n  \"is_invisible\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is expected', function () { pm.expect(pm.response.code).to.be.oneOf([200,400,401,403,404]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "??????",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/social/files",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "social",
+                "files"
+              ]
+            },
+            "description": "?? id ????????????",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "src": "{{socialUploadFilePath}}",
+                  "type": "file"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is expected', function () { pm.expect(pm.response.code).to.be.oneOf([200,400,401,403,404]); });",
+                  "const json = pm.response.json();",
+                  "if (json && json.code === 0) {",
+                  "  if (json.data && json.data.id) pm.environment.set('socialFileId', json.data && json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 ?????",
+      "item": [
+        {
+          "name": "????",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "token",
+                "value": "{{adminToken}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/boards",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "boards"
+              ]
+            },
+            "description": "??????????? ID",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Go\",\n  \"slug\": \"go\",\n  \"description\": \"Go ????\",\n  \"notice\": \"???????\",\n  \"rules\": \"???????\",\n  \"sort\": 1,\n  \"is_enabled\": true,\n  \"moderator_user_ids\": [\n    1\n  ],\n  \"deputy_moderator_user_ids\": [\n    2\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is expected', function () { pm.expect(pm.response.code).to.be.oneOf([200,400,401,403,404]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "????",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "token",
+                "value": "{{adminToken}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/announcements",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "announcements"
+              ]
+            },
+            "description": "board_id=0 ??????",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"??????\",\n  \"content\": \"?? 23:00 ??????? 30 ???\",\n  \"level\": \"warning\",\n  \"jump_link\": \"/notice/maintenance\",\n  \"board_id\": 0,\n  \"sort\": 1,\n  \"is_show\": true,\n  \"starts_at\": \"2026-03-08 20:00:00\",\n  \"ends_at\": \"2026-03-09 08:00:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is expected', function () { pm.expect(pm.response.code).to.be.oneOf([200,400,401,403,404]); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 ???????",
+      "item": [
+        {
+          "name": "??????",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/articles/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "articles",
+                "reports"
+              ]
+            },
+            "description": "????????????????",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"article_id\": \"{{articleId}}\",\n  \"reason\": \"?????????\",\n  \"content\": \"???????????????\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is expected', function () { pm.expect(pm.response.code).to.be.oneOf([200,400,401,403,404]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "????",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/articles/review",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "articles",
+                "review"
+              ]
+            },
+            "description": "review_status=2 ???=3 ?????????????",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{articleId}}\",\n  \"review_status\": 2,\n  \"review_reason\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is expected', function () { pm.expect(pm.response.code).to.be.oneOf([200,400,401,403,404]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "??????",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/files",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "files"
+              ]
+            },
+            "description": "???????????? attachments",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "src": "{{uploadFilePath}}",
+                  "type": "file"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is expected', function () { pm.expect(pm.response.code).to.be.oneOf([200,400,401,403,404]); });",
+                  "const json = pm.response.json();",
+                  "if (json && json.code === 0) {",
+                  "  if (json.data && json.data.id) pm.environment.set('fileId', json.data && json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "????????",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "token",
+                "value": "{{adminToken}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/data_sum/admin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "data_sum",
+                "admin"
+              ]
+            },
+            "description": "????????"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is expected', function () { pm.expect(pm.response.code).to.be.oneOf([200,400,401,403,404]); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06 ???????",
+      "item": [
+        {
+          "name": "????",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user_check_in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user_check_in"
+              ]
+            },
+            "description": "????????"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is expected', function () { pm.expect(pm.response.code).to.be.oneOf([200,400,401,403,404]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "??????",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{spaceUserId}}/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{spaceUserId}}",
+                "profile"
+              ]
+            },
+            "description": "?????????? token ???????"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is expected', function () { pm.expect(pm.response.code).to.be.oneOf([200,400,401,403,404]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "??????",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/space/posts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "space",
+                "posts"
+              ]
+            },
+            "description": "?????????????",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"????????Swagger ? Postman ?????\",\n  \"attachments\": [\n    {\n      \"file_id\": 1,\n      \"name\": \"????.pdf\",\n      \"url\": \"/api/files/1/download\",\n      \"size\": 204800\n    }\n  ],\n  \"is_private\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is expected', function () { pm.expect(pm.response.code).to.be.oneOf([200,400,401,403,404]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "??????",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/space/messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "space",
+                "messages"
+              ]
+            },
+            "description": "?????????????????????",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"space_user_id\": 2,\n  \"content\": \"?????????? Postman ???????\",\n  \"is_private\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is expected', function () { pm.expect(pm.response.code).to.be.oneOf([200,400,401,403,404]); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

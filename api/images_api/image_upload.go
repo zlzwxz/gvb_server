@@ -65,6 +65,8 @@ func (ImagesApi) ImageUploadView(c *gin.Context) {
 	// 第三步：做基础文件名与路径根目录准备。
 	fileName := strings.TrimSpace(file.Filename)
 	basePath := filepath.Clean(global.Config.Upload.Path)
+	visibility := models.NormalizeImageVisibility(c.PostForm("visibility"))
+	category := normalizeImageCategory(c.PostForm("image_category"))
 	if fileName == "" {
 		res.FailWithMessage("文件名不能为空", c)
 		return
@@ -165,10 +167,13 @@ func (ImagesApi) ImageUploadView(c *gin.Context) {
 
 	// 第十三步：把图片元信息写入数据库。
 	err = global.DB.Create(&models.BannerModel{
-		Path:      dbPath,
-		Hash:      imageHash,
-		Name:      newFileName,
-		ImageType: ctype.Local,
+		UserID:        claims.UserID,
+		Path:          dbPath,
+		Hash:          imageHash,
+		Name:          newFileName,
+		ImageType:     ctype.Local,
+		ImageCategory: category,
+		Visibility:    visibility,
 	}).Error
 	if err != nil {
 		global.Log.Error(err)

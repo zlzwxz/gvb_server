@@ -121,8 +121,12 @@
 - `conf_logger.go`: 日志配置
 - `conf_system.go`: 服务监听地址等系统配置
 - `conf_upload.go`: 上传目录和大小限制
-- `conf_site_info.go`: 站点信息
+- `conf_site_info.go`: 站点信息、公开展示字段、首页布局配置
 - `enter.go`: 聚合总配置结构
+
+其中 `SiteInfo` 现在不只放标题、联系方式这些展示信息，
+也包含前台首页统一读取的 `home_layout`。
+所以“首页布局设置”已经不是前端本地状态，而是后端配置的一部分。
 
 ### `core`
 
@@ -216,7 +220,7 @@ Gin 中间件层。
 - `menu_router.go`: 菜单路由
 - `message_router.go`: 消息路由
 - `new_router.go`: 资讯路由
-- `settings_router.go`: 配置路由
+- `settings_router.go`: 配置路由，包含公开 `site_info` 和管理员配置更新
 - `social_router.go`: 社交路由
 - `tag_router.go`: 标签路由
 - `user_router.go`: 用户路由
@@ -353,6 +357,22 @@ Gin 中间件层。
 - `JwtAuth()` 只要求已登录
 - `JwtAdmin()` 额外要求管理员角色
 
+另外有一条这次很容易碰到的配置链路：
+
+1. 前台首页通过 `GET /api/settings/public/site_info` 读取公开站点信息
+2. 返回数据里包含 `site_info.home_layout`
+3. 管理员保存首页布局时走 `PUT /api/settings/site_info`
+4. `api/settings_api/setting_updata.go` 会把它绑定到 `config.SiteInfo`
+5. 最后通过 `core.SetYaml()` 写回 `settings.yaml`
+
+所以你以后看到“首页布局为什么只有管理员能改、但所有人都生效”，
+第一反应就应该去看：
+
+- `config/conf_site_info.go`
+- `api/settings_api/settings_info.go`
+- `api/settings_api/setting_updata.go`
+- `routers/settings_router.go`
+
 ## 9. 社交实时链路
 
 社交模块是当前后端里最复杂的一块之一。
@@ -366,6 +386,7 @@ Gin 中间件层。
 - `api/social_api/social_group.go`
 - `api/social_api/social_follow.go`
 - `api/social_api/social_block.go`
+- `api/social_api/social_admin.go`
 - `api/social_api/social_file.go`
 
 你可以把它拆成三部分理解：
@@ -441,7 +462,13 @@ JWT 是无状态 token，默认签发后只要没过期就一直可用。
 
 `routers/social_router.go -> api/social_api/* -> models/social_model.go -> 前端 social store`
 
-## 12. 最后给新手的建议
+## 12. 第二层细化阅读
+
+如果你已经能读懂入口文件，下一层建议直接看这份：
+
+- `ES_AND_SOCIAL_DETAIL_GUIDE.md`
+
+## 13. 最后给新手的建议
 
 读这个后端时，不要按“功能多不多”来选入口，而要按“链路是否完整”来读。
 

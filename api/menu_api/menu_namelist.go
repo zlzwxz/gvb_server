@@ -21,7 +21,7 @@ type MenuNameResponse struct {
 // @Accept json
 // @Produce json
 // @Success 200 {object} res.Response{data=[]MenuNameResponse} "返回菜单名称列表"
-// @Router /api/menus/names [get]
+// @Router /api/menu_names [get]
 func (MenuApi) MenuNameList(c *gin.Context) {
 	var menuNameList []MenuNameResponse
 	global.DB.Model(models.MenuModel{}).Select("id", "title", "path").Scan(&menuNameList)

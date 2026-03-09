@@ -6,11 +6,14 @@ import (
 	"gvb-server/models"
 	"gvb-server/models/res"
 	"gvb-server/utils/jwts"
+	"strings"
 )
 
 type ImageUpdateRequest struct {
-	ID   uint   `json:"id" binding:"required" msg:"请选择文件id"`
-	Name string `json:"name" binding:"required" msg:"请输入文件名称"`
+	ID            uint    `json:"id" binding:"required" msg:"请选择文件id"`
+	Name          *string `json:"name"`
+	Visibility    *string `json:"visibility"`
+	ImageCategory *string `json:"image_category"`
 }
 
 // ImageUpdateView 更新图片信息
@@ -46,12 +49,32 @@ func (ImagesApi) ImageUpdateView(c *gin.Context) {
 		res.FailWithMessage("只能修改自己上传的图片", c)
 		return
 	}
-	err = global.DB.Model(&imageModel).Update("name", cr.Name).Error
+	updates := map[string]any{}
+	if cr.Name != nil {
+		name := strings.TrimSpace(*cr.Name)
+		if name != "" {
+			updates["name"] = name
+		}
+	}
+	if cr.Visibility != nil {
+		updates["visibility"] = models.NormalizeImageVisibility(*cr.Visibility)
+	}
+	if cr.ImageCategory != nil {
+		updates["image_category"] = normalizeImageCategory(*cr.ImageCategory)
+	}
+	if imageModel.UserID == 0 && !isImageAdmin(claims) && imageModel.MatchesOwner(claims.UserID, claims.NickName) {
+		updates["user_id"] = claims.UserID
+	}
+	if len(updates) == 0 {
+		res.FailWithMessage("没有可更新的图片信息", c)
+		return
+	}
+	err = global.DB.Model(&imageModel).Updates(updates).Error
 	if err != nil {
 		res.FailWithMessage(err.Error(), c)
 		return
 	}
-	res.OkWithMessage("图片名称修改成功", c)
+	res.OkWithMessage("图片信息修改成功", c)
 	return
 
 }

@@ -21,7 +21,7 @@ import (
 // @Success 200 {object} res.Response{data=object{count=int64,list=[]models.ChatModel}} "获取成功"
 // @Failure 400 {object} res.Response "请求错误"
 // @Failure 401 {object} res.Response "未授权"
-// @Router /api/chats [get]
+// @Router /api/chat_groups [get]
 func (ChatApi) ChatListView(c *gin.Context) {
 	var cr models.PageInfo
 	err := c.ShouldBindQuery(&cr)

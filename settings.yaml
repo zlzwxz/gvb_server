@@ -23,8 +23,8 @@ email:
   host: smtp.qq.com
   port: 465
   user: 936832660@qq.com
-  password: wxhfjmoetaokbgag
-  default_from_email: bu知道
+  password: coqwaxcvauhubbdf
+  default_from_email: zl博客
   use_ssl: true
   user_tls: true
 jwt:
@@ -51,6 +51,15 @@ site_info:
   profile: 这里是个人介绍栏，可填写你的经历、擅长方向和服务说明。
   contact: 'QQ: 936832660 / 微信: meiling_blog / 电话: 13800000000'
   service_url: ""
+  home_layout:
+    page_size: 6
+    hot_count: 5
+    level_count: 5
+    advert_count: 2
+    orders:
+      hot: 1
+      level: 2
+      profile: 3
   auto_crawl_fengfeng_articles: false
   crawler_user_name: system_crawler
   crawler_nick_name: 系统员

@@ -17,6 +17,7 @@ type SettingsUri struct {
 // @Description 根据配置名称获取对应的系统配置，支持 settings.yaml 的主要分组。
 // @Accept json
 // @Produce json
+// @Param token header string true "token"
 // @Param name path string true "配置名称" Enums(system,mysql,logger,email,jwt,qq,qiniu,upload,redis,es,site,site_info,news)
 // @Success 200 {object} res.Response{data=interface{}} "获取成功"
 // @Failure 400 {object} res.Response "请求参数错误"

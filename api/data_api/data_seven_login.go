@@ -31,7 +31,7 @@ type DateCountResponse struct {
 // @Param token header string true "token"
 // @Success 200 {object} res.Response{data=DateCountResponse} "获取成功"
 // @Failure 401 {object} res.Response "未授权"
-// @Router /api/data/seven_login [get]
+// @Router /api/data_login [get]
 func (DataApi) SevenLoginView(c *gin.Context) {
 	var loginDateCount, signDateCount []DateCount
 

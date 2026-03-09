@@ -19,7 +19,7 @@ import (
 // @Success 200 {object} res.Response{data=models.ArticleModel} "获取成功"
 // @Failure 400 {object} res.Response "请求错误"
 // @Failure 404 {object} res.Response "文章不存在"
-// @Router /articles/{id} [get]
+// @Router /api/articles/{id} [get]
 func (ArticleApi) ArticleDetailView(c *gin.Context) {
 	var cr models.ESIDRequest
 	err := c.ShouldBindUri(&cr)

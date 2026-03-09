@@ -15,6 +15,7 @@ import (
 // @Description 根据配置名称更新对应的配置信息，支持 settings.yaml 的主要分组。
 // @Accept json
 // @Produce json
+// @Param token header string true "token"
 // @Param name path string true "配置名称" Enums(system,mysql,logger,email,jwt,qq,qiniu,upload,redis,es,site,site_info,news)
 // @Param data body object true "配置数据"
 // @Success 200 {object} res.Response "更新成功"

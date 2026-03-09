@@ -10,6 +10,8 @@ import (
 	"gvb-server/models"
 	"gvb-server/models/ctype"
 	"gvb-server/utils/jwts"
+
+	"gorm.io/gorm"
 )
 
 func isImageAdmin(claims *jwts.CustomClaims) bool {
@@ -30,6 +32,9 @@ func imageOwnerPathLike(nickName string) string {
 
 func canOperateImage(claims *jwts.CustomClaims, image models.BannerModel) bool {
 	if isImageAdmin(claims) {
+		return true
+	}
+	if image.MatchesOwner(claims.UserID, claims.NickName) {
 		return true
 	}
 	for _, prefix := range imageOwnerPathPrefixes(claims) {
@@ -76,4 +81,91 @@ func sanitizePathSegment(value string, fallback string) string {
 		trimmed = trimmed[:48]
 	}
 	return filepath.ToSlash(trimmed)
+}
+
+func normalizeImageCategory(value string) string {
+	value = strings.TrimSpace(value)
+	value = strings.ReplaceAll(value, "\n", " ")
+	value = strings.ReplaceAll(value, "\r", " ")
+	if value == "" {
+		return "未分类"
+	}
+	runes := []rune(value)
+	if len(runes) > 24 {
+		value = string(runes[:24])
+	}
+	return value
+}
+
+func normalizeImageSort(value string) string {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "created_at asc":
+		return "created_at asc"
+	case "name asc":
+		return "name asc"
+	case "name desc":
+		return "name desc"
+	case "id asc":
+		return "id asc"
+	default:
+		return "created_at desc"
+	}
+}
+
+func buildOwnImageWhere(claims *jwts.CustomClaims) (string, []any) {
+	conditions := []string{"user_id = ?"}
+	args := []any{claims.UserID}
+	for _, prefix := range imageOwnerPathPrefixes(claims) {
+		prefix = strings.TrimSpace(prefix)
+		if prefix == "" {
+			continue
+		}
+		conditions = append(conditions, "path LIKE ?")
+		args = append(args, prefix+"%")
+	}
+	return "(" + strings.Join(conditions, " OR ") + ")", args
+}
+
+func publicImageWhere() string {
+	return "(visibility = 'public' OR visibility = '' OR visibility IS NULL)"
+}
+
+func normalizeImageRows(list []models.BannerModel) []models.BannerModel {
+	for index := range list {
+		list[index].Visibility = models.NormalizeImageVisibility(list[index].Visibility)
+		list[index].ImageCategory = normalizeImageCategory(list[index].ImageCategory)
+	}
+	return list
+}
+
+func applyImageAccessQuery(query *gorm.DB, claims *jwts.CustomClaims, visibility string, mineOnly bool) *gorm.DB {
+	visibility = strings.ToLower(strings.TrimSpace(visibility))
+	if isImageAdmin(claims) {
+		if mineOnly {
+			return query.Where("user_id = ?", claims.UserID)
+		}
+		if visibility == models.ImageVisibilityPrivate {
+			return query.Where("visibility = ?", models.ImageVisibilityPrivate)
+		}
+		if visibility == models.ImageVisibilityPublic {
+			return query.Where(publicImageWhere())
+		}
+		return query
+	}
+
+	ownWhere, ownArgs := buildOwnImageWhere(claims)
+	if mineOnly {
+		return query.Where(ownWhere, ownArgs...)
+	}
+	if visibility == models.ImageVisibilityPrivate {
+		args := append([]any{}, ownArgs...)
+		return query.Where(ownWhere, args...).Where("visibility = ?", models.ImageVisibilityPrivate)
+	}
+	if visibility == models.ImageVisibilityPublic {
+		return query.Where(publicImageWhere())
+	}
+
+	args := append([]any{}, ownArgs...)
+	combined := "(" + publicImageWhere() + " OR " + ownWhere + ")"
+	return query.Where(combined, args...)
 }

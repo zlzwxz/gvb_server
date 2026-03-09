@@ -8,6 +8,9 @@ import (
 
 	"gvb-server/global"
 	"gvb-server/middleware"
+	"gvb-server/models"
+	"gvb-server/models/ctype"
+	"gvb-server/utils/jwts"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -71,6 +74,10 @@ func registerUploadStaticRoute(router *gin.Engine) {
 
 		normalized := filepath.ToSlash(cleanPath)
 		if isProtectedUploadPath(normalized) {
+			c.Status(http.StatusForbidden)
+			return
+		}
+		if !canAccessImageAsset(c, cleanPath) {
 			c.Status(http.StatusForbidden)
 			return
 		}
@@ -164,4 +171,38 @@ func uploadPathRelativeToPublicRoot() string {
 // 单独抽函数而不是写死字符串，是为了后续如果改公开根目录时更集中。
 func uploadStaticBaseDir() string {
 	return "uploads"
+}
+
+func canAccessImageAsset(c *gin.Context, cleanPath string) bool {
+	dbPath := "/" + filepath.ToSlash(filepath.Join(uploadStaticBaseDir(), cleanPath))
+	var banner models.BannerModel
+	if err := global.DB.Take(&banner, "path = ?", dbPath).Error; err != nil {
+		return true
+	}
+	if !banner.IsPrivate() {
+		return true
+	}
+
+	token := strings.TrimSpace(c.Query("token"))
+	if token == "" {
+		token = strings.TrimSpace(c.GetHeader("token"))
+	}
+	if token == "" {
+		authHeader := strings.TrimSpace(c.GetHeader("Authorization"))
+		if strings.HasPrefix(strings.ToLower(authHeader), "bearer ") {
+			token = strings.TrimSpace(authHeader[7:])
+		}
+	}
+	if token == "" {
+		return false
+	}
+
+	claims, err := jwts.ParseToken(token)
+	if err != nil || claims == nil {
+		return false
+	}
+	if claims.Role == int(ctype.PermissionAdmin) {
+		return true
+	}
+	return banner.MatchesOwner(claims.UserID, claims.NickName)
 }

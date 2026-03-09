@@ -20,6 +20,59 @@ definitions:
     - is_show
     - title
     type: object
+  announcement_api.announcementItem:
+    properties:
+      board_id:
+        type: integer
+      board_name:
+        type: string
+      board_slug:
+        type: string
+      content:
+        type: string
+      created_at:
+        type: string
+      ends_at:
+        type: string
+      id:
+        type: integer
+      is_show:
+        type: boolean
+      jump_link:
+        type: string
+      level:
+        type: string
+      sort:
+        type: integer
+      starts_at:
+        type: string
+      title:
+        type: string
+    type: object
+  announcement_api.announcementSaveRequest:
+    properties:
+      board_id:
+        type: integer
+      content:
+        type: string
+      ends_at:
+        type: string
+      is_show:
+        type: boolean
+      jump_link:
+        type: string
+      level:
+        type: string
+      sort:
+        type: integer
+      starts_at:
+        type: string
+      title:
+        type: string
+    required:
+    - content
+    - title
+    type: object
   article_api.ArticleInsightsResponse:
     properties:
       hot_articles:
@@ -55,8 +108,16 @@ definitions:
       abstract:
         description: 文章简介
         type: string
+      attachments:
+        description: 文章附件
+        items:
+          $ref: '#/definitions/models.ArticleAttachment'
+        type: array
       banner_id:
         description: 文章封面id
+        type: integer
+      board_id:
+        description: 文章板块
         type: integer
       category:
         description: 文章分类
@@ -64,6 +125,9 @@ definitions:
       content:
         description: 文章内容
         type: string
+      is_private:
+        description: 私密文章开关（仅作者/管理员可见）
+        type: boolean
       link:
         description: 原文链接
         type: string
@@ -79,16 +143,35 @@ definitions:
         description: 文章标题
         type: string
     required:
+    - board_id
     - content
     - title
+    type: object
+  article_api.ArticleReviewRequest:
+    properties:
+      id:
+        type: string
+      review_reason:
+        type: string
+      review_status:
+        type: integer
+    required:
+    - id
+    - review_status
     type: object
   article_api.ArticleUpdateRequest:
     properties:
       abstract:
         description: 文章简介
         type: string
+      attachments:
+        items:
+          $ref: '#/definitions/models.ArticleAttachment'
+        type: array
       banner_id:
         description: 文章封面id
+        type: integer
+      board_id:
         type: integer
       category:
         description: 文章分类
@@ -98,6 +181,8 @@ definitions:
         type: string
       id:
         type: string
+      is_private:
+        type: boolean
       link:
         description: 原文链接
         type: string
@@ -132,11 +217,22 @@ definitions:
       abstract:
         description: 文章简介
         type: string
+      attachments:
+        description: 附件列表
+        items:
+          $ref: '#/definitions/models.ArticleAttachment'
+        type: array
       banner_id:
         description: 文章封面id
         type: integer
       banner_url:
         description: 文章封面
+        type: string
+      board_id:
+        description: 板块ID
+        type: integer
+      board_name:
+        description: 板块名称
         type: string
       category:
         description: 文章分类
@@ -155,9 +251,21 @@ definitions:
       digg_count:
         description: 点赞量
         type: integer
+      duplicate_rate:
+        description: 重复率（%）
+        type: number
+      duplicate_target_id:
+        description: 最相似文章ID
+        type: string
+      duplicate_target_title:
+        description: 最相似文章标题
+        type: string
       id:
         description: es的id
         type: string
+      is_private:
+        description: 是否私密，私密文章仅作者和管理员可见
+        type: boolean
       keyword:
         description: 关键字
         type: string
@@ -167,6 +275,22 @@ definitions:
       look_count:
         description: 浏览量
         type: integer
+      review_reason:
+        description: 审核备注
+        type: string
+      review_status:
+        allOf:
+        - $ref: '#/definitions/ctype.ArticleReviewStatus'
+        description: 审核状态
+      reviewed_at:
+        description: 审核时间
+        type: string
+      reviewer_id:
+        description: 审核人ID
+        type: integer
+      reviewer_nick_name:
+        description: 审核人昵称
+        type: string
       source:
         description: 文章来源
         type: string
@@ -252,6 +376,106 @@ definitions:
       tag:
         type: string
     type: object
+  article_api.articleReportCreateRequest:
+    properties:
+      article_id:
+        type: string
+      content:
+        type: string
+      reason:
+        type: string
+    required:
+    - article_id
+    - reason
+    type: object
+  article_api.articleReportHandleRequest:
+    properties:
+      handle_note:
+        type: string
+      id:
+        type: integer
+      status:
+        type: integer
+    required:
+    - id
+    - status
+    type: object
+  board_api.boardItem:
+    properties:
+      created_at:
+        description: 创建时间
+        type: string
+      deputy_moderator_ids:
+        items:
+          type: string
+        type: array
+      deputy_moderator_user_ids:
+        items:
+          type: integer
+        type: array
+      description:
+        type: string
+      id:
+        description: 主键 ID
+        type: integer
+      is_enabled:
+        type: boolean
+      moderator_ids:
+        items:
+          type: string
+        type: array
+      moderator_user_ids:
+        items:
+          type: integer
+        type: array
+      name:
+        type: string
+      notice:
+        type: string
+      pinned_article_ids:
+        items:
+          type: string
+        type: array
+      rules:
+        type: string
+      slug:
+        type: string
+      sort:
+        type: integer
+    type: object
+  board_api.boardSaveRequest:
+    properties:
+      deputy_moderator_user_ids:
+        items:
+          type: integer
+        type: array
+      description:
+        type: string
+      id:
+        type: integer
+      is_enabled:
+        type: boolean
+      moderator_user_ids:
+        items:
+          type: integer
+        type: array
+      name:
+        type: string
+      notice:
+        type: string
+      pinned_article_ids:
+        items:
+          type: string
+        type: array
+      rules:
+        type: string
+      slug:
+        type: string
+      sort:
+        type: integer
+    required:
+    - name
+    type: object
   comment_api.CommentRequest:
     properties:
       article_id:
@@ -265,6 +489,227 @@ definitions:
     - article_id
     - content
     type: object
+  config.HomeLayout:
+    properties:
+      advert_count:
+        type: integer
+      hot_count:
+        type: integer
+      level_count:
+        type: integer
+      orders:
+        $ref: '#/definitions/config.HomeLayoutOrders'
+      page_size:
+        type: integer
+    type: object
+  config.HomeLayoutOrders:
+    properties:
+      hot:
+        type: integer
+      level:
+        type: integer
+      profile:
+        type: integer
+    type: object
+  config.SiteInfo:
+    properties:
+      addr:
+        type: string
+      auto_crawl_fengfeng_articles:
+        description: 是否自动抓取枫枫知道文章
+        type: boolean
+      bei_an:
+        type: string
+      bilibili_url:
+        type: string
+      contact:
+        description: 联系方式（手机号/微信/QQ文本）
+        type: string
+      crawler_nick_name:
+        description: 自动抓取写入文章时使用的系统昵称
+        type: string
+      crawler_user_name:
+        description: 自动抓取写入文章时使用的系统账号
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      gitee_url:
+        type: string
+      github_url:
+        type: string
+      home_layout:
+        allOf:
+        - $ref: '#/definitions/config.HomeLayout'
+        description: 首页布局配置
+      job:
+        type: string
+      name:
+        type: string
+      profile:
+        description: 个人介绍文案
+        type: string
+      qq_image:
+        type: string
+      service_url:
+        description: 客服地址
+        type: string
+      slogan:
+        type: string
+      slogan_en:
+        type: string
+      title:
+        type: string
+      version:
+        type: string
+      web:
+        type: string
+      wechat_image:
+        type: string
+    type: object
+  crawl_ser.CrawlArticleCandidate:
+    properties:
+      abstract:
+        type: string
+      article_id:
+        type: string
+      cover_url:
+        type: string
+      link:
+        type: string
+      title:
+        type: string
+    type: object
+  crawl_ser.CrawlImageCandidate:
+    properties:
+      article_id:
+        type: string
+      article_title:
+        type: string
+      category:
+        type: string
+      url:
+        type: string
+    type: object
+  crawl_ser.PreviewImageResult:
+    properties:
+      candidates:
+        items:
+          $ref: '#/definitions/crawl_ser.CrawlImageCandidate'
+        type: array
+      duplicate_count:
+        type: integer
+      invalid_count:
+        type: integer
+      latest_scanned:
+        type: integer
+      new_candidate:
+        type: integer
+      source_total:
+        type: integer
+      sync_limit:
+        type: integer
+    type: object
+  crawl_ser.PreviewResult:
+    properties:
+      candidates:
+        items:
+          $ref: '#/definitions/crawl_ser.CrawlArticleCandidate'
+        type: array
+      duplicate_count:
+        type: integer
+      invalid_count:
+        type: integer
+      latest_scanned:
+        type: integer
+      new_candidate:
+        type: integer
+      source_total:
+        type: integer
+      sync_limit:
+        type: integer
+    type: object
+  crawl_ser.SyncImageResult:
+    properties:
+      created:
+        type: integer
+      duplicate_count:
+        type: integer
+      failed_count:
+        type: integer
+      latest_scanned:
+        type: integer
+      selected_count:
+        type: integer
+      skipped:
+        type: integer
+      source_total:
+        type: integer
+      sync_limit:
+        type: integer
+    type: object
+  crawl_ser.SyncResult:
+    properties:
+      created:
+        type: integer
+      duplicate_count:
+        type: integer
+      failed_count:
+        type: integer
+      latest_scanned:
+        type: integer
+      selected_count:
+        type: integer
+      skipped:
+        type: integer
+      source_total:
+        type: integer
+      sync_limit:
+        type: integer
+      updated_count:
+        type: integer
+    type: object
+  ctype.ArticleReportStatus:
+    enum:
+    - 1
+    - 2
+    - 3
+    type: integer
+    x-enum-comments:
+      ArticleReportDismissed: 已忽略
+      ArticleReportPending: 待处理
+      ArticleReportReReview: 已转复审
+    x-enum-descriptions:
+    - 待处理
+    - 已转复审
+    - 已忽略
+    x-enum-varnames:
+    - ArticleReportPending
+    - ArticleReportReReview
+    - ArticleReportDismissed
+  ctype.ArticleReviewStatus:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    type: integer
+    x-enum-comments:
+      ArticleReviewApproved: 审核通过
+      ArticleReviewLegacy: 历史数据（默认视为已通过）
+      ArticleReviewPending: 待审核
+      ArticleReviewRejected: 审核驳回
+    x-enum-descriptions:
+    - 历史数据（默认视为已通过）
+    - 待审核
+    - 审核通过
+    - 审核驳回
+    x-enum-varnames:
+    - ArticleReviewLegacy
+    - ArticleReviewPending
+    - ArticleReviewApproved
+    - ArticleReviewRejected
   ctype.ImageType:
     enum:
     - 1
@@ -319,6 +764,17 @@ definitions:
     - SignQQ
     - SignGitee
     - SignEmail
+  data_api.AdminDataSumResponse:
+    properties:
+      announcement_count:
+        type: integer
+      enabled_board_count:
+        type: integer
+      pending_article_report_count:
+        type: integer
+      pending_article_review_count:
+        type: integer
+    type: object
   data_api.DataSumResponse:
     properties:
       article_count:
@@ -357,6 +813,75 @@ definitions:
           type: integer
         type: array
     type: object
+  es_ser.ArticleImportFailure:
+    properties:
+      message:
+        type: string
+      row:
+        type: integer
+      source_id:
+        type: string
+      title:
+        type: string
+    type: object
+  es_ser.ArticleImportResult:
+    properties:
+      completed:
+        type: string
+      created:
+        items:
+          $ref: '#/definitions/es_ser.ArticleImportSuccess'
+        type: array
+      failed:
+        type: integer
+      failures:
+        items:
+          $ref: '#/definitions/es_ser.ArticleImportFailure'
+        type: array
+      index:
+        type: string
+      success:
+        type: integer
+      total:
+        type: integer
+    type: object
+  es_ser.ArticleImportSuccess:
+    properties:
+      new_id:
+        type: string
+      row:
+        type: integer
+      source_id:
+        type: string
+      title:
+        type: string
+    type: object
+  es_ser.ESIndexSummary:
+    properties:
+      description:
+        type: string
+      docs_count:
+        type: integer
+      export_supported:
+        type: boolean
+      import_supported:
+        type: boolean
+      name:
+        type: string
+    type: object
+  file_api.FileUploadItem:
+    properties:
+      ext:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      size:
+        type: integer
+      url:
+        type: string
+    type: object
   images_api.ImageUpdateRequest:
     properties:
       id:
@@ -384,6 +909,22 @@ definitions:
         type: string
       level:
         description: 日志的等级
+        type: integer
+      method:
+        description: 请求方法
+        type: string
+      path:
+        description: 接口地址
+        type: string
+      request_body:
+        type: string
+      resp_code:
+        description: 业务状态码
+        type: integer
+      response_body:
+        type: string
+      status_code:
+        description: HTTP 状态码
         type: integer
       user_id:
         description: 登录用户的用户id，需要自己在查询的时候做关联查询
@@ -545,16 +1086,38 @@ definitions:
         description: 显示的标题
         type: string
     type: object
+  models.ArticleAttachment:
+    properties:
+      file_id:
+        type: integer
+      name:
+        type: string
+      size:
+        type: integer
+      url:
+        type: string
+    type: object
   models.ArticleModel:
     properties:
       abstract:
         description: 文章简介
         type: string
+      attachments:
+        description: 附件列表
+        items:
+          $ref: '#/definitions/models.ArticleAttachment'
+        type: array
       banner_id:
         description: 文章封面id
         type: integer
       banner_url:
         description: 文章封面
+        type: string
+      board_id:
+        description: 板块ID
+        type: integer
+      board_name:
+        description: 板块名称
         type: string
       category:
         description: 文章分类
@@ -574,9 +1137,21 @@ definitions:
       digg_count:
         description: 点赞量
         type: integer
+      duplicate_rate:
+        description: 重复率（%）
+        type: number
+      duplicate_target_id:
+        description: 最相似文章ID
+        type: string
+      duplicate_target_title:
+        description: 最相似文章标题
+        type: string
       id:
         description: es的id
         type: string
+      is_private:
+        description: 是否私密，私密文章仅作者和管理员可见
+        type: boolean
       keyword:
         description: 关键字
         type: string
@@ -586,6 +1161,22 @@ definitions:
       look_count:
         description: 浏览量
         type: integer
+      review_reason:
+        description: 审核备注
+        type: string
+      review_status:
+        allOf:
+        - $ref: '#/definitions/ctype.ArticleReviewStatus'
+        description: 审核状态
+      reviewed_at:
+        description: 审核时间
+        type: string
+      reviewer_id:
+        description: 审核人ID
+        type: integer
+      reviewer_nick_name:
+        description: 审核人昵称
+        type: string
       source:
         description: 文章来源
         type: string
@@ -610,6 +1201,41 @@ definitions:
         description: 用户昵称
         type: string
     type: object
+  models.ArticleReportModel:
+    properties:
+      article_id:
+        type: string
+      article_title:
+        type: string
+      board_id:
+        type: integer
+      board_name:
+        type: string
+      content:
+        type: string
+      created_at:
+        description: 创建时间
+        type: string
+      handle_note:
+        type: string
+      handled_at:
+        type: string
+      handler_user_id:
+        type: integer
+      handler_user_nick_name:
+        type: string
+      id:
+        description: 主键 ID
+        type: integer
+      reason:
+        type: string
+      reporter_nick_name:
+        type: string
+      reporter_user_id:
+        type: integer
+      status:
+        $ref: '#/definitions/ctype.ArticleReportStatus'
+    type: object
   models.BannerModel:
     properties:
       created_at:
@@ -621,6 +1247,8 @@ definitions:
       id:
         description: 主键 ID
         type: integer
+      image_category:
+        type: string
       image_type:
         allOf:
         - $ref: '#/definitions/ctype.ImageType'
@@ -631,6 +1259,43 @@ definitions:
       path:
         description: 图片访问路径
         type: string
+      source_url:
+        type: string
+    type: object
+  models.BoardModel:
+    properties:
+      created_at:
+        description: 创建时间
+        type: string
+      deputy_moderator_ids:
+        items:
+          type: string
+        type: array
+      description:
+        type: string
+      id:
+        description: 主键 ID
+        type: integer
+      is_enabled:
+        type: boolean
+      moderator_ids:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      notice:
+        type: string
+      pinned_article_ids:
+        items:
+          type: string
+        type: array
+      rules:
+        type: string
+      slug:
+        type: string
+      sort:
+        type: integer
     type: object
   models.ChatModel:
     properties:
@@ -673,7 +1338,7 @@ definitions:
       comment_model:
         allOf:
         - $ref: '#/definitions/models.CommentModel'
-        description: 父级评论
+        description: 父级评论（子评论 @ 引用时使用）
       content:
         description: 评论内容
         type: string
@@ -767,7 +1432,21 @@ definitions:
       id_list:
         items:
           type: integer
+        minItems: 1
         type: array
+    required:
+    - id_list
+    type: object
+  models.SpaceAttachment:
+    properties:
+      file_id:
+        type: integer
+      name:
+        type: string
+      size:
+        type: integer
+      url:
+        type: string
     type: object
   models.TagModel:
     properties:
@@ -789,24 +1468,39 @@ definitions:
       avatar:
         description: 头像id
         type: string
+      check_in_streak:
+        description: 连续签到天数
+        type: integer
       created_at:
         description: 创建时间
         type: string
       email:
         description: 邮箱
         type: string
+      experience:
+        description: 经验
+        type: integer
       id:
         description: 主键 ID
         type: integer
       ip:
         description: ip地址
         type: string
+      last_check_in_at:
+        description: 上次签到时间
+        type: string
+      level:
+        description: 等级
+        type: integer
       link:
         description: 链接
         type: string
       nick_name:
         description: 昵称
         type: string
+      points:
+        description: 积分
+        type: integer
       role:
         allOf:
         - $ref: '#/definitions/ctype.Role'
@@ -828,10 +1522,56 @@ definitions:
         description: 用户名
         type: string
     type: object
+  models.UserSpaceMessageModel:
+    properties:
+      content:
+        type: string
+      created_at:
+        description: 创建时间
+        type: string
+      id:
+        description: 主键 ID
+        type: integer
+      is_private:
+        type: boolean
+      space_user_id:
+        type: integer
+      user_avatar:
+        type: string
+      user_id:
+        type: integer
+      user_nick_name:
+        type: string
+    type: object
+  models.UserSpacePostModel:
+    properties:
+      attachments:
+        items:
+          $ref: '#/definitions/models.SpaceAttachment'
+        type: array
+      content:
+        type: string
+      created_at:
+        description: 创建时间
+        type: string
+      id:
+        description: 主键 ID
+        type: integer
+      is_private:
+        type: boolean
+      user_avatar:
+        type: string
+      user_id:
+        type: integer
+      user_nick_name:
+        type: string
+    type: object
   new_api.NewsSource:
     properties:
       category:
         type: string
+      enabled:
+        type: boolean
       icon:
         type: string
       id:
@@ -874,6 +1614,640 @@ definitions:
       msg:
         type: string
     type: object
+  settings_api.settingsSyncFengfengArticlesRequest:
+    properties:
+      article_ids:
+        example:
+        - article_demo_001
+        - article_demo_002
+        items:
+          type: string
+        type: array
+      include_update:
+        example: true
+        type: boolean
+      limit:
+        example: 20
+        type: integer
+      sync_all:
+        example: false
+        type: boolean
+    type: object
+  settings_api.settingsSyncFengfengImagesRequest:
+    properties:
+      image_urls:
+        example:
+        - https://static.example.com/demo-1.jpg
+        - https://static.example.com/demo-2.jpg
+        items:
+          type: string
+        type: array
+      sync_all:
+        example: false
+        type: boolean
+    type: object
+  social_api.socialBlockItemDoc:
+    properties:
+      avatar:
+        example: /uploads/avatar/blocked.png
+        type: string
+      created_at:
+        example: "2026-03-08 10:30:00"
+        type: string
+      id:
+        example: 1
+        type: integer
+      nick_name:
+        example: 被拉黑用户
+        type: string
+      reason:
+        example: 频繁骚扰
+        type: string
+      user_id:
+        example: 2
+        type: integer
+      user_name:
+        example: blocked_user
+        type: string
+    type: object
+  social_api.socialBlockRequest:
+    properties:
+      reason:
+        type: string
+    type: object
+  social_api.socialCallLogItem:
+    properties:
+      answered_at:
+        type: string
+      call_id:
+        type: string
+      conversation_key:
+        type: string
+      direction:
+        type: string
+      duration_sec:
+        type: integer
+      ended_at:
+        type: string
+      id:
+        type: integer
+      is_missed:
+        type: boolean
+      partner_avatar:
+        type: string
+      partner_nick_name:
+        type: string
+      partner_user_id:
+        type: integer
+      started_at:
+        type: string
+      status:
+        type: string
+      status_label:
+        type: string
+    type: object
+  social_api.socialConversationItem:
+    properties:
+      avatar:
+        type: string
+      conversation_key:
+        type: string
+      conversation_type:
+        type: string
+      group_id:
+        type: integer
+      is_friend:
+        type: boolean
+      is_online:
+        type: boolean
+      last_active_at:
+        type: string
+      latest_at:
+        type: string
+      latest_message:
+        type: string
+      latest_message_id:
+        type: integer
+      latest_message_type:
+        type: string
+      member_count:
+        type: integer
+      presence_mode:
+        type: string
+      presence_text:
+        type: string
+      title:
+        type: string
+      unread_count:
+        type: integer
+      user_id:
+        type: integer
+    type: object
+  social_api.socialDirectMessageRequest:
+    properties:
+      content:
+        type: string
+      file_id:
+        type: integer
+      msg_type:
+        type: string
+      rev_user_id:
+        type: integer
+    required:
+    - rev_user_id
+    type: object
+  social_api.socialDiscoveryGroupItem:
+    properties:
+      avatar:
+        type: string
+      group_no:
+        type: string
+      id:
+        type: integer
+      is_joined:
+        type: boolean
+      member_count:
+        type: integer
+      name:
+        type: string
+      notice:
+        type: string
+      owner_user_id:
+        type: integer
+    type: object
+  social_api.socialDiscoveryResponseDoc:
+    properties:
+      groups:
+        items:
+          $ref: '#/definitions/social_api.socialDiscoveryGroupItem'
+        type: array
+      users:
+        items:
+          $ref: '#/definitions/social_api.socialDiscoveryUserItem'
+        type: array
+    type: object
+  social_api.socialDiscoveryUserItem:
+    properties:
+      avatar:
+        type: string
+      blog_no:
+        type: integer
+      is_online:
+        type: boolean
+      is_self:
+        type: boolean
+      last_active_at:
+        type: string
+      nick_name:
+        type: string
+      relation:
+        $ref: '#/definitions/social_api.socialRelationResponse'
+      user_id:
+        type: integer
+      user_name:
+        type: string
+    type: object
+  social_api.socialFileUploadItem:
+    properties:
+      ext:
+        type: string
+      id:
+        type: integer
+      mime:
+        type: string
+      name:
+        type: string
+      size:
+        type: integer
+      url:
+        type: string
+    type: object
+  social_api.socialFollowCard:
+    properties:
+      avatar:
+        type: string
+      blocked_by_them:
+        type: boolean
+      blog_no:
+        type: integer
+      can_call:
+        type: boolean
+      can_create_group:
+        type: boolean
+      can_direct_message:
+        type: boolean
+      can_send_file:
+        type: boolean
+      follows_me:
+        type: boolean
+      is_blocked:
+        type: boolean
+      is_following:
+        type: boolean
+      is_friend:
+        type: boolean
+      is_invisible:
+        type: boolean
+      is_online:
+        type: boolean
+      last_active_at:
+        type: string
+      last_message_at:
+        type: string
+      last_message_preview:
+        type: string
+      nick_name:
+        type: string
+      presence_mode:
+        type: string
+      presence_text:
+        type: string
+      unread_count:
+        type: integer
+      user_id:
+        type: integer
+      user_name:
+        type: string
+    type: object
+  social_api.socialGroupCreateRequest:
+    properties:
+      member_ids:
+        items:
+          type: integer
+        type: array
+      name:
+        type: string
+      notice:
+        type: string
+    required:
+    - name
+    type: object
+  social_api.socialGroupDetailResponseDoc:
+    properties:
+      avatar:
+        example: /uploads/group/default.png
+        type: string
+      can_manage:
+        example: true
+        type: boolean
+      conversation_key:
+        example: group:1
+        type: string
+      group_no:
+        example: G000001
+        type: string
+      id:
+        example: 1
+        type: integer
+      members:
+        items:
+          $ref: '#/definitions/social_api.socialGroupMemberItem'
+        type: array
+      name:
+        example: 产品讨论群
+        type: string
+      notice:
+        example: 仅讨论产品需求和 Bug
+        type: string
+      owner_user_id:
+        example: 1
+        type: integer
+      viewer_role:
+        example: owner
+        type: string
+      viewer_role_label:
+        example: 群主
+        type: string
+    type: object
+  social_api.socialGroupJoinRequest:
+    properties:
+      group_no:
+        type: string
+    required:
+    - group_no
+    type: object
+  social_api.socialGroupMemberItem:
+    properties:
+      avatar:
+        type: string
+      blog_no:
+        type: integer
+      nick_name:
+        type: string
+      role:
+        type: string
+      role_label:
+        type: string
+      user_id:
+        type: integer
+      user_name:
+        type: string
+    type: object
+  social_api.socialGroupMemberRoleRequest:
+    properties:
+      role:
+        type: string
+    required:
+    - role
+    type: object
+  social_api.socialGroupMemberSaveRequest:
+    properties:
+      member_ids:
+        items:
+          type: integer
+        type: array
+    required:
+    - member_ids
+    type: object
+  social_api.socialGroupMembersResponseDoc:
+    properties:
+      members:
+        items:
+          $ref: '#/definitions/social_api.socialGroupMemberItem'
+        type: array
+    type: object
+  social_api.socialGroupMessageRequest:
+    properties:
+      content:
+        type: string
+      file_id:
+        type: integer
+      msg_type:
+        type: string
+    type: object
+  social_api.socialGroupOverviewItemDoc:
+    properties:
+      avatar:
+        example: /uploads/group/default.png
+        type: string
+      conversation_key:
+        example: group:1
+        type: string
+      created_at:
+        example: "2026-03-08T10:00:00+08:00"
+        type: string
+      group_no:
+        example: G000001
+        type: string
+      id:
+        example: 1
+        type: integer
+      member_count:
+        example: 3
+        type: integer
+      member_ids:
+        example:
+        - 1
+        - 2
+        - 3
+        items:
+          type: integer
+        type: array
+      name:
+        example: 产品讨论群
+        type: string
+      notice:
+        example: 仅讨论产品需求和 Bug
+        type: string
+      owner_user_id:
+        example: 1
+        type: integer
+    type: object
+  social_api.socialGroupTransferRequest:
+    properties:
+      user_id:
+        type: integer
+    required:
+    - user_id
+    type: object
+  social_api.socialJoinGroupResponseDoc:
+    properties:
+      conversation_key:
+        example: group:1
+        type: string
+      group_no:
+        example: G000001
+        type: string
+      id:
+        example: 1
+        type: integer
+      name:
+        example: 产品讨论群
+        type: string
+    type: object
+  social_api.socialManageBlockItem:
+    properties:
+      block_nick_name:
+        type: string
+      block_user_avatar:
+        type: string
+      block_user_id:
+        type: integer
+      block_user_name:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      reason:
+        type: string
+      user_avatar:
+        type: string
+      user_id:
+        type: integer
+      user_name:
+        type: string
+      user_nick_name:
+        type: string
+    type: object
+  social_api.socialManageFollowItem:
+    properties:
+      created_at:
+        type: string
+      follow_nick_name:
+        type: string
+      follow_user_avatar:
+        type: string
+      follow_user_id:
+        type: integer
+      follow_user_name:
+        type: string
+      id:
+        type: integer
+      is_friend:
+        type: boolean
+      user_avatar:
+        type: string
+      user_id:
+        type: integer
+      user_name:
+        type: string
+      user_nick_name:
+        type: string
+    type: object
+  social_api.socialManageGroupItem:
+    properties:
+      avatar:
+        type: string
+      created_at:
+        type: string
+      group_no:
+        type: string
+      id:
+        type: integer
+      member_count:
+        type: integer
+      name:
+        type: string
+      notice:
+        type: string
+      owner_name:
+        type: string
+      owner_user_id:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  social_api.socialManageOverviewResponse:
+    properties:
+      block_count:
+        type: integer
+      follow_count:
+        type: integer
+      group_count:
+        type: integer
+      group_member_count:
+        type: integer
+      mutual_friend_count:
+        type: integer
+      online_user_count:
+        type: integer
+      presence_user_count:
+        type: integer
+    type: object
+  social_api.socialMessageResponse:
+    properties:
+      can_recall:
+        type: boolean
+      content:
+        type: string
+      conversation_key:
+        type: string
+      conversation_type:
+        type: string
+      created_at:
+        description: 创建时间
+        type: string
+      extra:
+        type: string
+      file_id:
+        type: integer
+      file_mime:
+        type: string
+      file_name:
+        type: string
+      file_size:
+        type: integer
+      file_url:
+        type: string
+      group_id:
+        type: integer
+      id:
+        description: 主键 ID
+        type: integer
+      is_mine:
+        type: boolean
+      is_read:
+        type: boolean
+      is_recalled:
+        type: boolean
+      member_count:
+        type: integer
+      msg_type:
+        type: string
+      read_count:
+        type: integer
+      read_status_text:
+        type: string
+      read_user_ids:
+        items:
+          type: integer
+        type: array
+      recalled_at:
+        type: string
+      recalled_by:
+        type: integer
+      receive_user_avatar:
+        type: string
+      receive_user_id:
+        type: integer
+      receive_user_nick_name:
+        type: string
+      related_call_id:
+        type: string
+      send_user_avatar:
+        type: string
+      send_user_id:
+        type: integer
+      send_user_nick_name:
+        type: string
+    type: object
+  social_api.socialPresenceRequest:
+    properties:
+      is_invisible:
+        type: boolean
+      mode:
+        type: string
+      status_text:
+        type: string
+    type: object
+  social_api.socialPresenceResponse:
+    properties:
+      is_invisible:
+        type: boolean
+      is_online:
+        type: boolean
+      last_active_at:
+        type: string
+      mode:
+        type: string
+      status_text:
+        type: string
+    type: object
+  social_api.socialRelationResponse:
+    properties:
+      blocked_by_them:
+        type: boolean
+      can_call:
+        type: boolean
+      can_create_group:
+        type: boolean
+      can_direct_message:
+        type: boolean
+      can_send_file:
+        type: boolean
+      follows_me:
+        type: boolean
+      is_blocked:
+        type: boolean
+      is_following:
+        type: boolean
+      is_friend:
+        type: boolean
+      user_id:
+        type: integer
+    type: object
+  social_api.socialSummaryResponse:
+    properties:
+      block_count:
+        type: integer
+      friend_count:
+        type: integer
+      online_friend_count:
+        type: integer
+      presence:
+        $ref: '#/definitions/social_api.socialPresenceResponse'
+    type: object
   tag_api.TagRequest:
     properties:
       title:
@@ -910,6 +2284,13 @@ definitions:
     - password
     - user_name
     type: object
+  user_api.RegisterEmailCodeRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
   user_api.UpdatePasswordRequest:
     properties:
       old_pwd:
@@ -918,12 +2299,49 @@ definitions:
       pwd:
         description: 新密码
         type: string
+      user_id:
+        type: integer
     required:
-    - old_pwd
     - pwd
+    type: object
+  user_api.UserCheckInResponse:
+    properties:
+      check_in_date:
+        type: string
+      checked_today:
+        type: boolean
+      experience:
+        type: integer
+      level:
+        type: integer
+      points:
+        type: integer
+      reward_experience:
+        type: integer
+      reward_points:
+        type: integer
+      streak:
+        type: integer
+    type: object
+  user_api.UserCheckInStatusResponse:
+    properties:
+      check_in_date:
+        type: string
+      checked_today:
+        type: boolean
+      experience:
+        type: integer
+      level:
+        type: integer
+      points:
+        type: integer
+      streak:
+        type: integer
     type: object
   user_api.UserCreateRequest:
     properties:
+      code:
+        type: string
       email:
         type: string
       nick_name:
@@ -939,6 +2357,25 @@ definitions:
     - password
     - role
     - user_name
+    type: object
+  user_api.UserLevelRankItem:
+    properties:
+      avatar:
+        type: string
+      check_in_streak:
+        type: integer
+      experience:
+        type: integer
+      id:
+        type: integer
+      level:
+        type: integer
+      nick_name:
+        type: string
+      points:
+        type: integer
+      user_name:
+        type: string
     type: object
   user_api.UserRole:
     properties:
@@ -961,11 +2398,80 @@ definitions:
     type: object
   user_api.UserUpdateNicknameRequest:
     properties:
+      avatar:
+        type: string
       link:
         type: string
       nick_name:
         type: string
       sign:
+        type: string
+    type: object
+  user_api.userSpaceMessageRequest:
+    properties:
+      content:
+        type: string
+      is_private:
+        type: boolean
+      space_user_id:
+        type: integer
+    required:
+    - content
+    - space_user_id
+    type: object
+  user_api.userSpacePostRequest:
+    properties:
+      attachments:
+        items:
+          $ref: '#/definitions/models.SpaceAttachment'
+        type: array
+      content:
+        type: string
+      is_private:
+        type: boolean
+    required:
+    - content
+    type: object
+  user_api.userSpaceProfileResponse:
+    properties:
+      avatar:
+        type: string
+      can_manage_space:
+        type: boolean
+      created_at:
+        type: string
+      experience:
+        type: integer
+      id:
+        type: integer
+      is_self:
+        type: boolean
+      level:
+        type: integer
+      link:
+        type: string
+      managed_boards:
+        items:
+          type: string
+        type: array
+      nick_name:
+        type: string
+      points:
+        type: integer
+      role:
+        type: string
+      sign:
+        type: string
+      stats:
+        properties:
+          article_count:
+            type: integer
+          guestbook_count:
+            type: integer
+          post_count:
+            type: integer
+        type: object
+      user_name:
         type: string
     type: object
 host: 127.0.0.1:8080
@@ -1091,6 +2597,302 @@ paths:
       summary: 更新广告
       tags:
       - 广告管理
+  /api/announcements:
+    delete:
+      consumes:
+      - application/json
+      description: 支持批量删除公告。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 公告 ID 列表
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.RemoveRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 删除成功
+          schema:
+            $ref: '#/definitions/res.Response'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 删除公告
+      tags:
+      - 公告管理
+    get:
+      consumes:
+      - application/json
+      description: 前台公告列表。默认只返回全站公告；传 board_id 时会同时返回该板块公告和全站公告。
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量，默认 6，最大 20
+        in: query
+        name: limit
+        type: integer
+      - description: 按标题或内容模糊搜索
+        in: query
+        name: key
+        type: string
+      - description: 板块 ID
+        in: query
+        name: board_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  properties:
+                    count:
+                      format: int64
+                      type: integer
+                    list:
+                      items:
+                        $ref: '#/definitions/announcement_api.announcementItem'
+                      type: array
+                  type: object
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 获取公告列表
+      tags:
+      - 公告管理
+    post:
+      consumes:
+      - application/json
+      description: 支持创建全站公告或板块公告。开始结束时间留空表示长期有效。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 公告信息
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/announcement_api.announcementSaveRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 创建成功
+          schema:
+            $ref: '#/definitions/res.Response'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 创建公告
+      tags:
+      - 公告管理
+  /api/announcements/{id}:
+    put:
+      consumes:
+      - application/json
+      description: 根据公告 ID 更新公告内容、展示状态、排序和有效期。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 公告 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 公告信息
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/announcement_api.announcementSaveRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 更新成功
+          schema:
+            $ref: '#/definitions/res.Response'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 更新公告
+      tags:
+      - 公告管理
+  /api/announcements/manage:
+    get:
+      consumes:
+      - application/json
+      description: 支持按关键词、板块、是否展示筛选。scope=global 时只返回全站公告。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量，默认 10，最大 100
+        in: query
+        name: limit
+        type: integer
+      - description: 按标题或内容搜索
+        in: query
+        name: key
+        type: string
+      - description: 板块 ID
+        in: query
+        name: board_id
+        type: integer
+      - description: 是否展示
+        in: query
+        name: is_show
+        type: boolean
+      - description: global 表示只看全站公告
+        in: query
+        name: scope
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  properties:
+                    count:
+                      format: int64
+                      type: integer
+                    list:
+                      items:
+                        $ref: '#/definitions/announcement_api.announcementItem'
+                      type: array
+                  type: object
+              type: object
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 获取后台公告列表
+      tags:
+      - 公告管理
+  /api/article/digg:
+    post:
+      consumes:
+      - application/json
+      description: 对指定文章进行点赞
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 文章ID
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.ESIDRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 点赞成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                msg:
+                  type: string
+              type: object
+        "400":
+          description: 请求错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 文章点赞
+      tags:
+      - 点赞管理
+  /api/article/text:
+    get:
+      consumes:
+      - application/json
+      description: 根据关键词搜索文章标题和正文内容
+      parameters:
+      - description: 搜索关键词
+        in: query
+        name: key
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 搜索成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  properties:
+                    count:
+                      format: int64
+                      type: integer
+                    list:
+                      items:
+                        $ref: '#/definitions/models.FullTextModel'
+                      type: array
+                  type: object
+              type: object
+        "400":
+          description: 请求错误
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 全文文章搜索
+      tags:
+      - 文章管理
   /api/articles:
     delete:
       consumes:
@@ -1271,6 +3073,40 @@ paths:
           schema:
             $ref: '#/definitions/res.Response'
       summary: 更新文章
+      tags:
+      - 文章管理
+  /api/articles/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 根据文章ID获取文章详细信息
+      parameters:
+      - description: 文章ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.ArticleModel'
+              type: object
+        "400":
+          description: 请求错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "404":
+          description: 文章不存在
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 获取文章详情
       tags:
       - 文章管理
   /api/articles/calendar:
@@ -1583,21 +3419,38 @@ paths:
       summary: 获取首页洞察数据
       tags:
       - 文章管理
-  /api/articles/search:
+  /api/articles/reports:
     get:
       consumes:
       - application/json
-      description: 根据关键词搜索文章标题和正文内容
+      description: 管理员可查看全部举报；版主仅能查看自己管理板块下的举报。status 可按处理状态筛选。
       parameters:
-      - description: 搜索关键词
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量，默认 10，最大 100
+        in: query
+        name: limit
+        type: integer
+      - description: 按文章标题、举报人、原因搜索
         in: query
         name: key
         type: string
+      - description: 举报状态
+        in: query
+        name: status
+        type: integer
       produces:
       - application/json
       responses:
         "200":
-          description: 搜索成功
+          description: 获取成功
           schema:
             allOf:
             - $ref: '#/definitions/res.Response'
@@ -1609,15 +3462,118 @@ paths:
                       type: integer
                     list:
                       items:
-                        $ref: '#/definitions/models.FullTextModel'
+                        $ref: '#/definitions/models.ArticleReportModel'
                       type: array
                   type: object
               type: object
-        "400":
-          description: 请求错误
+        "401":
+          description: 未授权
           schema:
             $ref: '#/definitions/res.Response'
-      summary: 全文文章搜索
+      summary: 获取文章举报列表
+      tags:
+      - 文章管理
+    post:
+      consumes:
+      - application/json
+      description: 举报自己的文章会被拦截；同一用户对同一篇文章存在待处理举报时，不能重复提交。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 举报内容
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/article_api.articleReportCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 提交成功
+          schema:
+            $ref: '#/definitions/res.Response'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 提交文章举报
+      tags:
+      - 文章管理
+    put:
+      consumes:
+      - application/json
+      description: status=2 表示转入文章复审，status=3 表示忽略举报。只有管理员或对应板块版主可处理。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 处理结果
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/article_api.articleReportHandleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 处理成功
+          schema:
+            $ref: '#/definitions/res.Response'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 处理文章举报
+      tags:
+      - 文章管理
+  /api/articles/review:
+    put:
+      consumes:
+      - application/json
+      description: review_status 仅允许传通过或驳回。管理员可全局审核，版主可审核自己管理板块下的文章。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 审核参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/article_api.ArticleReviewRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 审核成功
+          schema:
+            $ref: '#/definitions/res.Response'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 审核文章
       tags:
       - 文章管理
   /api/articles/tags:
@@ -1661,26 +3617,163 @@ paths:
       summary: 获取文章标签列表
       tags:
       - 文章管理
-  /api/chat_groups_records:
-    get:
+  /api/boards:
+    delete:
       consumes:
       - application/json
-      description: 建立 websocket 连接并加入公共聊天室，后续消息通过 websocket 双向通信。
+      description: 批量删除板块。建议先确保前台和文章没有继续依赖这些板块。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 板块 ID 列表
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.RemoveRequest'
       produces:
       - application/json
       responses:
-        "101":
-          description: Switching Protocols
+        "200":
+          description: 删除成功
           schema:
-            type: string
+            $ref: '#/definitions/res.Response'
         "400":
           description: 请求参数错误
           schema:
             $ref: '#/definitions/res.Response'
-      summary: 进入聊天室
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 删除板块
       tags:
-      - 聊天管理
-  /api/chats:
+      - 板块管理
+    get:
+      consumes:
+      - application/json
+      description: 默认只返回启用中的板块；scope=all 时返回全部板块。结果附带版主和副版主用户 ID 列表。
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量，默认 50，最大 200
+        in: query
+        name: limit
+        type: integer
+      - description: 按板块名称或描述搜索
+        in: query
+        name: key
+        type: string
+      - description: all 表示包含已停用板块
+        in: query
+        name: scope
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  properties:
+                    count:
+                      format: int64
+                      type: integer
+                    list:
+                      items:
+                        $ref: '#/definitions/board_api.boardItem'
+                      type: array
+                  type: object
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 获取板块列表
+      tags:
+      - 板块管理
+    post:
+      consumes:
+      - application/json
+      description: 创建论坛板块，并可同时设置版主、副版主、置顶文章和展示状态。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 板块信息
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/board_api.boardSaveRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 创建成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.BoardModel'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 创建板块
+      tags:
+      - 板块管理
+    put:
+      consumes:
+      - application/json
+      description: 根据板块 ID 更新板块信息、版主管理关系和置顶文章设置。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 板块信息
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/board_api.boardSaveRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 更新成功
+          schema:
+            $ref: '#/definitions/res.Response'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 更新板块
+      tags:
+      - 板块管理
+  /api/chat_groups:
     get:
       consumes:
       - application/json
@@ -1728,6 +3821,25 @@ paths:
           schema:
             $ref: '#/definitions/res.Response'
       summary: 获取聊天列表
+      tags:
+      - 聊天管理
+  /api/chat_groups_records:
+    get:
+      consumes:
+      - application/json
+      description: 建立 websocket 连接并加入公共聊天室，后续消息通过 websocket 双向通信。
+      produces:
+      - application/json
+      responses:
+        "101":
+          description: Switching Protocols
+          schema:
+            type: string
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 进入聊天室
       tags:
       - 聊天管理
   /api/comments:
@@ -1848,8 +3960,7 @@ paths:
       summary: 删除评论
       tags:
       - 评论管理
-  /api/comments/digg/{id}:
-    post:
+    get:
       consumes:
       - application/json
       description: 对指定评论进行点赞
@@ -1882,7 +3993,7 @@ paths:
       summary: 评论点赞
       tags:
       - 评论管理
-  /api/data/seven_login:
+  /api/data_login:
     get:
       consumes:
       - application/json
@@ -1942,46 +4053,36 @@ paths:
       summary: 获取数据统计
       tags:
       - 数据管理
-  /api/digg:
-    post:
+  /api/data_sum/admin:
+    get:
       consumes:
       - application/json
-      description: 对指定文章进行点赞
+      description: 返回待审核文章数、待处理举报数、公告总数和启用板块数，适合作为后台首页卡片数据。
       parameters:
       - description: token
         in: header
         name: token
         required: true
         type: string
-      - description: 文章ID
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/models.ESIDRequest'
       produces:
       - application/json
       responses:
         "200":
-          description: 点赞成功
+          description: 获取成功
           schema:
             allOf:
             - $ref: '#/definitions/res.Response'
             - properties:
-                msg:
-                  type: string
+                data:
+                  $ref: '#/definitions/data_api.AdminDataSumResponse'
               type: object
-        "400":
-          description: 请求错误
-          schema:
-            $ref: '#/definitions/res.Response'
         "401":
           description: 未授权
           schema:
             $ref: '#/definitions/res.Response'
-      summary: 文章点赞
+      summary: 获取后台运营统计
       tags:
-      - 点赞管理
+      - 数据统计
   /api/email_login:
     post:
       consumes:
@@ -2017,6 +4118,79 @@ paths:
       summary: 邮箱登录
       tags:
       - 用户管理
+  /api/files:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 仅允许上传附件白名单中的文件类型。上传成功后返回附件 ID 和下载地址，供文章 attachments 字段引用。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 附件文件
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 上传成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/file_api.FileUploadItem'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 上传文章附件
+      tags:
+      - 文件管理
+  /api/files/{id}/download:
+    get:
+      consumes:
+      - application/json
+      description: 文章作者、管理员，以及已公开文章引用的附件都可以下载。下载时会做权限校验，不建议直接暴露物理路径。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 附件 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: 文件流
+          schema:
+            type: file
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 下载文章附件
+      tags:
+      - 文件管理
   /api/images:
     delete:
       consumes:
@@ -2214,7 +4388,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: 获取系统日志列表，支持按级别筛选
+      description: 按级别、请求方法、路径、用户、响应码和时间范围筛选后台操作日志
       parameters:
       - description: token
         in: header
@@ -2225,14 +4399,54 @@ paths:
         in: query
         name: page
         type: integer
-      - description: 每页数量
+      - description: 每页数量，默认 20，最大 200
         in: query
         name: limit
         type: integer
+      - description: 按内容、请求体、响应体搜索
+        in: query
+        name: key
+        type: string
       - description: 日志级别
         in: query
         name: level
         type: integer
+      - description: 请求方法
+        in: query
+        name: method
+        type: string
+      - description: 请求路径
+        in: query
+        name: path
+        type: string
+      - description: IP
+        in: query
+        name: ip
+        type: string
+      - description: 用户 ID
+        in: query
+        name: user_id
+        type: integer
+      - description: HTTP 状态码
+        in: query
+        name: status_code
+        type: integer
+      - description: 业务响应码
+        in: query
+        name: resp_code
+        type: integer
+      - description: 开始时间，支持 2006-01-02 或 2006-01-02 15:04:05
+        in: query
+        name: date_from
+        type: string
+      - description: 结束时间，支持 2006-01-02 或 2006-01-02 15:04:05
+        in: query
+        name: date_to
+        type: string
+      - description: 排序，如 created_at desc
+        in: query
+        name: sort
+        type: string
       produces:
       - application/json
       responses:
@@ -2264,6 +4478,28 @@ paths:
       summary: 获取日志列表
       tags:
       - 日志管理
+  /api/menu_names:
+    get:
+      consumes:
+      - application/json
+      description: 获取所有菜单的基础信息（ID、标题、路径）
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 返回菜单名称列表
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/menu_api.MenuNameResponse'
+                  type: array
+              type: object
+      summary: 获取菜单名称列表
+      tags:
+      - 菜单管理
   /api/menus:
     delete:
       consumes:
@@ -2390,28 +4626,6 @@ paths:
                   $ref: '#/definitions/menu_api.MenuResponse'
               type: object
       summary: 获取菜单详情
-      tags:
-      - 菜单管理
-  /api/menus/names:
-    get:
-      consumes:
-      - application/json
-      description: 获取所有菜单的基础信息（ID、标题、路径）
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 返回菜单名称列表
-          schema:
-            allOf:
-            - $ref: '#/definitions/res.Response'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/menu_api.MenuNameResponse'
-                  type: array
-              type: object
-      summary: 获取菜单名称列表
       tags:
       - 菜单管理
   /api/messages:
@@ -2580,6 +4794,89 @@ paths:
       summary: 获取用户消息记录
       tags:
       - 消息管理
+  /api/messages_all:
+    get:
+      consumes:
+      - application/json
+      description: 兼容旧前端和第三方调用方的管理员消息列表入口，实际逻辑与 /api/messages/all 相同。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  properties:
+                    count:
+                      format: int64
+                      type: integer
+                    list:
+                      items:
+                        $ref: '#/definitions/models.MessageModel'
+                      type: array
+                  type: object
+              type: object
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 获取所有消息列表（兼容旧路径）
+      tags:
+      - 消息管理
+  /api/messages_record:
+    get:
+      consumes:
+      - application/json
+      description: 兼容旧前端和第三方调用方的私信记录入口，实际逻辑与 /api/messages/record 相同。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 用户 ID
+        in: query
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.MessageModel'
+                  type: array
+              type: object
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 获取用户消息记录（兼容旧路径）
+      tags:
+      - 消息管理
   /api/news:
     get:
       consumes:
@@ -2703,15 +5000,28 @@ paths:
     get:
       consumes:
       - application/json
-      description: 根据配置名称获取对应的系统配置。当前支持 site、email、qq、qiniu、jwt。
+      description: 根据配置名称获取对应的系统配置，支持 settings.yaml 的主要分组。
       parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
       - description: 配置名称
         enum:
-        - site
+        - system
+        - mysql
+        - logger
         - email
+        - jwt
         - qq
         - qiniu
-        - jwt
+        - upload
+        - redis
+        - es
+        - site
+        - site_info
+        - news
         in: path
         name: name
         required: true
@@ -2741,15 +5051,28 @@ paths:
     put:
       consumes:
       - application/json
-      description: 根据配置名称更新对应的配置信息。site、email、qq、qiniu、jwt 分别绑定到不同结构体。
+      description: 根据配置名称更新对应的配置信息，支持 settings.yaml 的主要分组。
       parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
       - description: 配置名称
         enum:
-        - site
+        - system
+        - mysql
+        - logger
         - email
+        - jwt
         - qq
         - qiniu
-        - jwt
+        - upload
+        - redis
+        - es
+        - site
+        - site_info
+        - news
         in: path
         name: name
         required: true
@@ -2778,6 +5101,1758 @@ paths:
       summary: 更新配置信息
       tags:
       - 配置管理
+  /api/settings/es/export:
+    get:
+      consumes:
+      - application/json
+      description: 导出指定索引为 JSON 文件。当前后台页面主要用于备份文章索引和排查全文索引内容。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 索引名称，例如 article_index
+        in: query
+        name: index
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 导出的 JSON 文件
+          schema:
+            type: file
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 导出 ES 索引
+      tags:
+      - 配置管理
+  /api/settings/es/import:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 上传导出的 JSON 文件并执行页面导入。当前页面只支持导入 article_index，并会按文章创建逻辑重新校验数据。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 索引名称，当前仅支持 article_index
+        in: formData
+        name: index
+        required: true
+        type: string
+      - description: 要导入的 JSON 文件
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 导入成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/es_ser.ArticleImportResult'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 导入 ES 索引
+      tags:
+      - 配置管理
+  /api/settings/es/indices:
+    get:
+      consumes:
+      - application/json
+      description: 返回后台可见索引、文档数以及该索引是否支持页面导入导出。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/es_ser.ESIndexSummary'
+                  type: array
+              type: object
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 获取 ES 索引列表
+      tags:
+      - 配置管理
+  /api/settings/public/site_info:
+    get:
+      consumes:
+      - application/json
+      description: 返回前台首页、备案、站点标题等公开展示配置。该接口无需登录，适合站点初始化时直接调用。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/config.SiteInfo'
+              type: object
+      summary: 获取公开站点配置
+      tags:
+      - 配置管理
+  /api/settings/site_info/sync_fengfeng:
+    post:
+      consumes:
+      - application/json
+      description: 根据文章 ID、是否全量、是否允许更新等参数，把枫枫知道文章抓取并写入当前系统。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 同步参数，不传时按默认策略执行
+        in: body
+        name: data
+        schema:
+          $ref: '#/definitions/settings_api.settingsSyncFengfengArticlesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 同步成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/crawl_ser.SyncResult'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 同步枫枫文章
+      tags:
+      - 配置管理
+  /api/settings/site_info/sync_fengfeng_images:
+    post:
+      consumes:
+      - application/json
+      description: 可以传指定图片 URL 列表，也可以直接一键同步预览结果中的全部新图片候选。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 同步参数，不传时按默认策略执行
+        in: body
+        name: data
+        schema:
+          $ref: '#/definitions/settings_api.settingsSyncFengfengImagesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 同步成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/crawl_ser.SyncImageResult'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 同步枫枫图片
+      tags:
+      - 配置管理
+  /api/settings/site_info/sync_fengfeng_images_preview:
+    get:
+      consumes:
+      - application/json
+      description: 只返回图片候选、重复数量和扫描统计，不真正落库存储。适合后台挑选需要抓取的图片。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 预览成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/crawl_ser.PreviewImageResult'
+              type: object
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 预览枫枫图片同步
+      tags:
+      - 配置管理
+  /api/settings/site_info/sync_fengfeng_preview:
+    get:
+      consumes:
+      - application/json
+      description: 仅抓取候选文章和重复统计，不写入数据库。适合后台先看有哪些文章会被新增或识别为重复。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 扫描上限，-1=默认，0=全量，正数=指定条数
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 预览成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/crawl_ser.PreviewResult'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 预览枫枫文章同步
+      tags:
+      - 配置管理
+  /api/social/blocks:
+    get:
+      consumes:
+      - application/json
+      description: 返回当前用户拉黑的用户列表和拉黑原因。被拉黑用户之间无法继续私聊、关注或发起通话。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/social_api.socialBlockItemDoc'
+                  type: array
+              type: object
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 获取黑名单
+      tags:
+      - 社交系统
+  /api/social/blocks/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 移除黑名单关系后，双方仍需要重新关注才能恢复好友身份。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 目标用户 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 取消成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/social_api.socialRelationResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 取消拉黑用户
+      tags:
+      - 社交系统
+    post:
+      consumes:
+      - application/json
+      description: 建立拉黑关系后，会自动清理双方之间的关注关系，后续也不能继续私聊和通话。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 目标用户 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 拉黑原因
+        in: body
+        name: data
+        schema:
+          $ref: '#/definitions/social_api.socialBlockRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 拉黑成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/social_api.socialRelationResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 拉黑用户
+      tags:
+      - 社交系统
+  /api/social/calls:
+    get:
+      consumes:
+      - application/json
+      description: 返回当前用户的语音通话记录，可按状态筛选，默认最多返回 30 条。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 通话状态：ringing、rejected、missed、completed、canceled
+        in: query
+        name: status
+        type: string
+      - description: 返回条数，默认 30，最大 100
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/social_api.socialCallLogItem'
+                  type: array
+              type: object
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 获取通话记录
+      tags:
+      - 社交系统
+  /api/social/conversations:
+    get:
+      consumes:
+      - application/json
+      description: 合并返回单聊和群聊会话，包含最新消息预览、未读数、在线状态、群成员数量等字段。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/social_api.socialConversationItem'
+                  type: array
+              type: object
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 获取会话列表
+      tags:
+      - 社交系统
+  /api/social/direct/messages:
+    get:
+      consumes:
+      - application/json
+      description: 按 user_id 获取当前用户与目标用户的完整单聊消息，并自动推进当前用户的已读游标。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 对方用户 ID
+        in: query
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/social_api.socialMessageResponse'
+                  type: array
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 获取单聊消息列表
+      tags:
+      - 社交系统
+    post:
+      consumes:
+      - application/json
+      description: msg_type 为空时按文本消息处理；文件消息需要先通过社交文件上传接口拿到 file_id，而且双方必须是好友。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 消息内容
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/social_api.socialDirectMessageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 发送成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/social_api.socialMessageResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 发送单聊消息
+      tags:
+      - 社交系统
+  /api/social/discovery:
+    get:
+      consumes:
+      - application/json
+      description: 根据博客号、昵称、用户名或群组号进行搜索，返回用户关系状态和群组加入状态。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 关键词，可输入博客号、昵称、用户名或群组号
+        in: query
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 搜索成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/social_api.socialDiscoveryResponseDoc'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 搜索用户和群组
+      tags:
+      - 社交系统
+  /api/social/files:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 上传单聊或群聊中要发送的文件。返回 file_id 后，再在消息接口里用该 ID 发送文件消息。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 文件内容
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 上传成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/social_api.socialFileUploadItem'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 上传社交文件
+      tags:
+      - 社交系统
+  /api/social/files/{id}/download:
+    get:
+      consumes:
+      - application/json
+      description: 只有文件所有者、参与对应私聊会话的成员，或所在群成员，才能下载该文件。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 文件 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: 文件流
+          schema:
+            type: file
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 下载社交文件
+      tags:
+      - 社交系统
+  /api/social/follows/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 取消当前用户对目标用户的关注关系；如果原本是好友，也会同步失去好友关系。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 目标用户 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 取消成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/social_api.socialRelationResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 取消关注用户
+      tags:
+      - 社交系统
+    post:
+      consumes:
+      - application/json
+      description: 对目标用户建立单向关注。若双方互相关注且不存在拉黑关系，则会自动变成好友关系。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 目标用户 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 关注成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/social_api.socialRelationResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 关注用户
+      tags:
+      - 社交系统
+  /api/social/friends:
+    get:
+      consumes:
+      - application/json
+      description: 返回当前用户的双向好友列表，并附带在线状态、最近消息和未读数。可选 key 做前端搜索过滤。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 按好友昵称或用户名过滤
+        in: query
+        name: key
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/social_api.socialFollowCard'
+                  type: array
+              type: object
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 获取好友列表
+      tags:
+      - 社交系统
+  /api/social/groups:
+    get:
+      consumes:
+      - application/json
+      description: 返回当前用户加入的群组信息、成员数量和会话 key，适合群聊列表页初始化。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/social_api.socialGroupOverviewItemDoc'
+                  type: array
+              type: object
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 获取我的群组列表
+      tags:
+      - 社交系统
+    post:
+      consumes:
+      - application/json
+      description: 只能邀请自己的好友入群，群总人数上限 30。创建成功后会自动把群主自己加入成员列表。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 群组信息
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/social_api.socialGroupCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 创建成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/social_api.socialGroupOverviewItemDoc'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 创建群组
+      tags:
+      - 社交系统
+  /api/social/groups/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 返回群基本信息、当前用户在群内的角色和完整成员列表。只有已入群成员才可查看。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 群组 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/social_api.socialGroupDetailResponseDoc'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 获取群组详情
+      tags:
+      - 社交系统
+  /api/social/groups/{id}/members:
+    post:
+      consumes:
+      - application/json
+      description: 只有群主和管理员可以操作，并且仅允许邀请自己的好友入群。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 群组 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 要加入的成员 ID 列表
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/social_api.socialGroupMemberSaveRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 操作成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/social_api.socialGroupMembersResponseDoc'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 邀请好友入群
+      tags:
+      - 社交系统
+  /api/social/groups/{id}/members/{user_id}:
+    delete:
+      consumes:
+      - application/json
+      description: 自己删除自己表示退群；管理员和群主可按权限移除其他成员；群主退出前必须先转让群主。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 群组 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 目标用户 ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 移除成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/social_api.socialGroupMembersResponseDoc'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 移除群成员或退群
+      tags:
+      - 社交系统
+  /api/social/groups/{id}/members/{user_id}/role:
+    put:
+      consumes:
+      - application/json
+      description: 只有群主可以把成员设置为 admin 或恢复为 member，不能直接修改群主自己的角色。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 群组 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 目标用户 ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      - description: 角色信息
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/social_api.socialGroupMemberRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 设置成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/social_api.socialGroupMembersResponseDoc'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 设置群成员角色
+      tags:
+      - 社交系统
+  /api/social/groups/{id}/messages:
+    get:
+      consumes:
+      - application/json
+      description: 返回指定群组的消息列表，并自动把当前用户已读游标推进到最后一条消息。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 群组 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/social_api.socialMessageResponse'
+                  type: array
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 获取群消息
+      tags:
+      - 社交系统
+    post:
+      consumes:
+      - application/json
+      description: 支持文本和文件消息。文件消息需要先上传到社交文件接口拿到 file_id。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 群组 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 消息内容
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/social_api.socialGroupMessageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 发送成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/social_api.socialMessageResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 发送群消息
+      tags:
+      - 社交系统
+  /api/social/groups/{id}/transfer-owner:
+    put:
+      consumes:
+      - application/json
+      description: 只有当前群主可以把群主身份转给另一位现有群成员。转让成功后原群主会被降为管理员。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 群组 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 新群主用户 ID
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/social_api.socialGroupTransferRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 转让成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/social_api.socialGroupMembersResponseDoc'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 转让群主
+      tags:
+      - 社交系统
+  /api/social/groups/join:
+    post:
+      consumes:
+      - application/json
+      description: 根据 group_no 加入目标群组。若已经在群里、群不存在或群人数已达上限，则会返回失败。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 群号
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/social_api.socialGroupJoinRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 加入成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/social_api.socialJoinGroupResponseDoc'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 通过群号加入群组
+      tags:
+      - 社交系统
+  /api/social/manage/blocks:
+    get:
+      consumes:
+      - application/json
+      description: 支持分页和关键字搜索，便于后台审查拉黑关系和拉黑原因。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量，最大 100
+        in: query
+        name: limit
+        type: integer
+      - description: 按用户昵称、用户名、用户 ID、原因搜索
+        in: query
+        name: key
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  properties:
+                    count:
+                      format: int64
+                      type: integer
+                    list:
+                      items:
+                        $ref: '#/definitions/social_api.socialManageBlockItem'
+                      type: array
+                  type: object
+              type: object
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 获取黑名单列表
+      tags:
+      - 社交系统
+  /api/social/manage/follows:
+    get:
+      consumes:
+      - application/json
+      description: mode=friend 返回双向好友，mode=follow 返回单向关注；支持分页和关键字搜索。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量，最大 100
+        in: query
+        name: limit
+        type: integer
+      - description: 按用户昵称、用户名、用户 ID 搜索
+        in: query
+        name: key
+        type: string
+      - description: 关系模式：friend 或 follow
+        in: query
+        name: mode
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  properties:
+                    count:
+                      format: int64
+                      type: integer
+                    list:
+                      items:
+                        $ref: '#/definitions/social_api.socialManageFollowItem'
+                      type: array
+                  type: object
+              type: object
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 获取社交关系列表
+      tags:
+      - 社交系统
+  /api/social/manage/groups:
+    get:
+      consumes:
+      - application/json
+      description: 支持分页和关键字搜索，可查看群号、群主、成员数量和最后更新时间。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量，最大 100
+        in: query
+        name: limit
+        type: integer
+      - description: 按群名、群号、群主信息搜索
+        in: query
+        name: key
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  properties:
+                    count:
+                      format: int64
+                      type: integer
+                    list:
+                      items:
+                        $ref: '#/definitions/social_api.socialManageGroupItem'
+                      type: array
+                  type: object
+              type: object
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 获取后台群组列表
+      tags:
+      - 社交系统
+  /api/social/manage/summary:
+    get:
+      consumes:
+      - application/json
+      description: 返回关注数、双向好友数、黑名单数、群组数、群成员数、在线人数等指标，适合作为后台面板顶部统计卡片数据。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/social_api.socialManageOverviewResponse'
+              type: object
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 获取社交后台总览
+      tags:
+      - 社交系统
+  /api/social/messages/{id}/recall:
+    post:
+      consumes:
+      - application/json
+      description: 发送人可撤回自己的消息；群主和群管理员可撤回群内消息；平台管理员可全局撤回。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 消息 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 撤回成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/social_api.socialMessageResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 撤回消息
+      tags:
+      - 社交系统
+  /api/social/messages/search:
+    get:
+      consumes:
+      - application/json
+      description: 二选一传 user_id 或 group_id。只搜索当前用户有权访问的会话，已撤回消息不会出现在结果中。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 单聊目标用户 ID
+        in: query
+        name: user_id
+        type: integer
+      - description: 群组 ID
+        in: query
+        name: group_id
+        type: integer
+      - description: 搜索关键词
+        in: query
+        name: keyword
+        required: true
+        type: string
+      - description: 返回条数，默认 20，最大 100
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 搜索成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/social_api.socialMessageResponse'
+                  type: array
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 搜索会话消息
+      tags:
+      - 社交系统
+  /api/social/presence:
+    put:
+      consumes:
+      - application/json
+      description: 更新当前用户的在线模式、状态文案和隐身设置。前端切换忙碌、离开、隐身等状态时调用。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 在线状态
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/social_api.socialPresenceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 更新成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/social_api.socialPresenceResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 更新在线状态
+      tags:
+      - 社交系统
+  /api/social/relations/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 返回是否已关注、是否互相关注、是否好友、是否存在拉黑关系，以及能否私聊、建群、发文件和语音通话。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 目标用户 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/social_api.socialRelationResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 获取社交关系
+      tags:
+      - 社交系统
+  /api/social/summary:
+    get:
+      consumes:
+      - application/json
+      description: 返回当前用户在线状态、好友数、在线好友数和黑名单数量。好友面板初始化时建议先调这个接口。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/social_api.socialSummaryResponse'
+              type: object
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 获取社交摘要
+      tags:
+      - 社交系统
+  /api/social/ws:
+    get:
+      consumes:
+      - application/json
+      description: '用于在线状态同步、实时私聊提醒、群消息通知和语音通话信令。token 可通过 query、token 头或 Authorization:
+        Bearer 传入。'
+      parameters:
+      - description: token，也可放在 header
+        in: query
+        name: token
+        type: string
+      - description: 自定义 token 头
+        in: header
+        name: token
+        type: string
+      - description: Bearer token
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "101":
+          description: Switching Protocols
+          schema:
+            type: string
+        "400":
+          description: 连接失败
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 建立社交 WebSocket 连接
+      tags:
+      - 社交系统
+  /api/space/messages:
+    post:
+      consumes:
+      - application/json
+      description: 可指定留言给哪个空间用户，并可选择是否私密。私密留言默认仅空间主人、留言人和管理员可见。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 留言内容
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/user_api.userSpaceMessageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 发表成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.UserSpaceMessageModel'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 发表空间留言
+      tags:
+      - 用户管理
+  /api/space/messages/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 管理员、空间主人和留言作者都可以删除该留言。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 留言 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 删除成功
+          schema:
+            $ref: '#/definitions/res.Response'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 删除空间留言
+      tags:
+      - 用户管理
+  /api/space/posts:
+    post:
+      consumes:
+      - application/json
+      description: 支持附带附件链接和是否私密。私密动态仅本人和管理员可见。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 动态内容
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/user_api.userSpacePostRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 发布成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.UserSpacePostModel'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 发布空间动态
+      tags:
+      - 用户管理
+  /api/space/posts/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 只有空间主人或管理员可以删除空间动态。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 动态 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 删除成功
+          schema:
+            $ref: '#/definitions/res.Response'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 删除空间动态
+      tags:
+      - 用户管理
   /api/tags:
     delete:
       consumes:
@@ -3028,6 +7103,70 @@ paths:
       summary: 用户绑定邮箱
       tags:
       - 用户管理
+  /api/user_check_in:
+    post:
+      consumes:
+      - application/json
+      description: 每日仅允许签到一次。游客账号不可签到；连续签到会获得额外积分和经验奖励。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 签到成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/user_api.UserCheckInResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 用户签到
+      tags:
+      - 用户管理
+  /api/user_check_in_status:
+    get:
+      consumes:
+      - application/json
+      description: 返回当前用户今天是否已签到、当前积分、经验、等级和连续签到天数。
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/user_api.UserCheckInStatusResponse'
+              type: object
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 获取签到状态
+      tags:
+      - 用户管理
   /api/user_create:
     post:
       consumes:
@@ -3093,6 +7232,37 @@ paths:
       summary: 获取用户信息
       tags:
       - 用户管理
+  /api/user_level_rank:
+    get:
+      consumes:
+      - application/json
+      description: 按等级、经验、积分排序返回用户等级榜（游客账号默认不参与）
+      parameters:
+      - description: 榜单数量，默认10，最大50
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/user_api.UserLevelRankItem'
+                  type: array
+              type: object
+        "400":
+          description: 请求错误
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 获取用户等级排行榜
+      tags:
+      - 用户管理
   /api/user_password:
     put:
       consumes:
@@ -3135,6 +7305,37 @@ paths:
           schema:
             $ref: '#/definitions/res.Response'
       summary: 修改用户密码
+      tags:
+      - 用户管理
+  /api/user_register_email_code:
+    post:
+      consumes:
+      - application/json
+      description: 注册前发送邮箱验证码，验证码有效期 10 分钟
+      parameters:
+      - description: 邮箱信息
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/user_api.RegisterEmailCodeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 发送成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                msg:
+                  type: string
+              type: object
+        "400":
+          description: 请求错误
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 发送注册邮箱验证码
       tags:
       - 用户管理
   /api/user_role:
@@ -3322,16 +7523,66 @@ paths:
       summary: 获取用户列表
       tags:
       - 用户管理
-  /articles/{id}:
+  /api/users/{id}/profile:
     get:
       consumes:
       - application/json
-      description: 根据文章ID获取文章详细信息
+      description: token 可选。未登录或访问他人空间时只会看到公开统计；本人或管理员可看到更多可管理状态。
       parameters:
-      - description: 文章ID
+      - description: token，可选
+        in: header
+        name: token
+        type: string
+      - description: 用户 ID
         in: path
         name: id
         required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/user_api.userSpaceProfileResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 获取用户空间资料
+      tags:
+      - 用户管理
+  /api/users/{id}/space/messages:
+    get:
+      consumes:
+      - application/json
+      description: token 可选。未登录时只能看到公开留言；登录后会额外看到自己留下的私密留言；空间主人和管理员可看全部。
+      parameters:
+      - description: token，可选
+        in: header
+        name: token
+        type: string
+      - description: 空间用户 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量，默认 10，最大 50
+        in: query
+        name: limit
+        type: integer
+      - description: 按留言内容搜索
+        in: query
+        name: key
         type: string
       produces:
       - application/json
@@ -3343,17 +7594,75 @@ paths:
             - $ref: '#/definitions/res.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/models.ArticleModel'
+                  properties:
+                    count:
+                      format: int64
+                      type: integer
+                    list:
+                      items:
+                        $ref: '#/definitions/models.UserSpaceMessageModel'
+                      type: array
+                  type: object
               type: object
         "400":
-          description: 请求错误
+          description: 请求参数错误
           schema:
             $ref: '#/definitions/res.Response'
-        "404":
-          description: 文章不存在
-          schema:
-            $ref: '#/definitions/res.Response'
-      summary: 获取文章详情
+      summary: 获取空间留言列表
       tags:
-      - 文章管理
+      - 用户管理
+  /api/users/{id}/space/posts:
+    get:
+      consumes:
+      - application/json
+      description: token 可选。访问他人空间时默认只返回公开动态；本人或管理员可查看私密动态。
+      parameters:
+      - description: token，可选
+        in: header
+        name: token
+        type: string
+      - description: 空间用户 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量，默认 10，最大 50
+        in: query
+        name: limit
+        type: integer
+      - description: 按动态内容搜索
+        in: query
+        name: key
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/res.Response'
+            - properties:
+                data:
+                  properties:
+                    count:
+                      format: int64
+                      type: integer
+                    list:
+                      items:
+                        $ref: '#/definitions/models.UserSpacePostModel'
+                      type: array
+                  type: object
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/res.Response'
+      summary: 获取空间动态列表
+      tags:
+      - 用户管理
 swagger: "2.0"

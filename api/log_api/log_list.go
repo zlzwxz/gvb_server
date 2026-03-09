@@ -27,6 +27,29 @@ type LogRequest struct {
 }
 
 // LogListView 获取日志列表。
+// @Summary 获取日志列表
+// @Description 按级别、请求方法、路径、用户、响应码和时间范围筛选后台操作日志
+// @Tags 日志管理
+// @Accept json
+// @Produce json
+// @Param token header string true "token"
+// @Param page query int false "页码"
+// @Param limit query int false "每页数量，默认 20，最大 200"
+// @Param key query string false "按内容、请求体、响应体搜索"
+// @Param level query int false "日志级别"
+// @Param method query string false "请求方法"
+// @Param path query string false "请求路径"
+// @Param ip query string false "IP"
+// @Param user_id query int false "用户 ID"
+// @Param status_code query int false "HTTP 状态码"
+// @Param resp_code query int false "业务响应码"
+// @Param date_from query string false "开始时间，支持 2006-01-02 或 2006-01-02 15:04:05"
+// @Param date_to query string false "结束时间，支持 2006-01-02 或 2006-01-02 15:04:05"
+// @Param sort query string false "排序，如 created_at desc"
+// @Success 200 {object} res.Response{data=object{count=int64,list=[]log_stash.LogStashModel}} "获取成功"
+// @Failure 400 {object} res.Response "请求错误"
+// @Failure 401 {object} res.Response "未授权"
+// @Router /api/logs [get]
 func (LogApi) LogListView(c *gin.Context) {
 	var cr LogRequest
 	if err := c.ShouldBindQuery(&cr); err != nil {

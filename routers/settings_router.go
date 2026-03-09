@@ -14,6 +14,9 @@ func (router RouterGroup) SettinsRouter() {
 	router.POST("/settings/site_info/sync_fengfeng", middleware.JwtAdmin(), srttinsApi.SyncFengfengArticlesView)
 	router.GET("/settings/site_info/sync_fengfeng_images_preview", middleware.JwtAdmin(), srttinsApi.PreviewFengfengImagesView)
 	router.POST("/settings/site_info/sync_fengfeng_images", middleware.JwtAdmin(), srttinsApi.SyncFengfengImagesView)
+	router.GET("/settings/es/indices", middleware.JwtAdmin(), srttinsApi.ESIndexListView)
+	router.GET("/settings/es/export", middleware.JwtAdmin(), srttinsApi.ESIndexExportView)
+	router.POST("/settings/es/import", middleware.JwtAdmin(), srttinsApi.ESIndexImportView)
 	router.GET("/settings/:name", middleware.JwtAdmin(), srttinsApi.SettingsInfoView)
 	router.PUT("/settings/:name", middleware.JwtAdmin(), srttinsApi.SettingsInfoUpdateView)
 }
