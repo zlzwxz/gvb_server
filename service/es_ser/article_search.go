@@ -21,14 +21,26 @@ func CommList(option Option) (list []models.ArticleModel, count int, err error) 
 	}
 
 	if option.Key != "" {
-		boolSearch.Must(
-			elastic.NewMultiMatchQuery(option.Key, option.Fields...),
-		)
+		keywordQuery := elastic.NewBoolQuery().MinimumNumberShouldMatch(1)
+		if len(option.Fields) > 0 {
+			keywordQuery.Should(
+				elastic.NewMultiMatchQuery(option.Key, option.Fields...),
+			)
+		}
+		text := strings.TrimSpace(option.Key)
+		if text != "" {
+			like := "*" + text + "*"
+			keywordQuery.Should(
+				elastic.NewWildcardQuery("tags", like),
+				elastic.NewWildcardQuery("board_name", like),
+				elastic.NewWildcardQuery("category", like),
+				elastic.NewTermQuery("keyword", text),
+			)
+		}
+		boolSearch.Must(keywordQuery)
 	}
 	if option.Tag != "" {
-		boolSearch.Must(
-			elastic.NewMultiMatchQuery(option.Tag, "tags"),
-		)
+		boolSearch.Must(elastic.NewTermQuery("tags", option.Tag))
 	}
 	type SortField struct {
 		Field     string
@@ -56,14 +68,26 @@ func CommList(option Option) (list []models.ArticleModel, count int, err error) 
 	lookInfo := redis_ser.NewArticleLook().GetInfo()
 	//redis查看评论数
 	commentInfo := redis_ser.NewCommentCount().GetInfo()
-	res, err := global.ESClient.
+	searchService := global.ESClient.
 		Search(models.ArticleModel{}.Index()).
 		Query(boolSearch).
-		Highlight(elastic.NewHighlight().Field("title")).
 		From(option.GetForm()).
 		Sort(sortField.Field, sortField.Ascending).
-		Size(option.Limit).
-		Do(context.Background())
+		Size(option.Limit)
+
+	if strings.TrimSpace(option.Key) != "" {
+		searchService = searchService.Highlight(
+			elastic.NewHighlight().
+				RequireFieldMatch(false).
+				Fields(
+					elastic.NewHighlighterField("title").NumOfFragments(0),
+					elastic.NewHighlighterField("abstract").FragmentSize(160).NumOfFragments(1).NoMatchSize(120),
+					elastic.NewHighlighterField("content").FragmentSize(200).NumOfFragments(1).NoMatchSize(160),
+				),
+		)
+	}
+
+	res, err := searchService.Do(context.Background())
 	if err != nil {
 		return
 	}
@@ -81,9 +105,20 @@ func CommList(option Option) (list []models.ArticleModel, count int, err error) 
 			logrus.Error(err)
 			continue
 		}
-		title, ok := hit.Highlight["title"]
-		if ok {
-			model.Title = title[0]
+		if strings.TrimSpace(option.Key) != "" {
+			title, ok := hit.Highlight["title"]
+			if ok && len(title) > 0 {
+				model.Title = title[0]
+			}
+			abstract, ok := hit.Highlight["abstract"]
+			if ok && len(abstract) > 0 {
+				model.Abstract = abstract[0]
+			} else {
+				content, ok := hit.Highlight["content"]
+				if ok && len(content) > 0 {
+					model.Abstract = content[0]
+				}
+			}
 		}
 		//添加点赞数
 		model.ID = hit.Id

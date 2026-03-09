@@ -135,7 +135,7 @@ func (ArticleApi) ArticleListView(c *gin.Context) {
 
 	list, count, err := es_ser.CommList(es_ser.Option{
 		PageInfo: cr.PageInfo,
-		Fields:   []string{"title", "content", "category", "board_name"},
+		Fields:   []string{"title", "abstract", "content", "category", "board_name"},
 		Tag:      cr.Tag,
 		Query:    boolSearch,
 	})
