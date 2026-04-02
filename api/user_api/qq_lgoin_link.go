@@ -3,6 +3,7 @@ package user_api
 import (
 	"gvb-server/global"
 	"gvb-server/models/res"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,7 +18,18 @@ import (
 // @Failure 500 {object} res.Response "未配置QQ登录地址"
 // @Router /api/qq_login_path [get]
 func (UserApi) QQLoginLinkView(c *gin.Context) {
-	path := global.Config.QQ.GetPath()
+	display := strings.TrimSpace(c.Query("display"))
+	if display == "" {
+		display = "pc"
+	}
+	switch strings.ToLower(display) {
+	case "pc", "mobile":
+	default:
+		display = "pc"
+	}
+
+	state := strings.TrimSpace(c.Query("state"))
+	path := global.Config.QQ.GetPathWith(display, state)
 	if path == "" {
 		res.FailWithMessage("未配置qq登录地址", c)
 		return

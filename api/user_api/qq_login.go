@@ -1,10 +1,12 @@
 package user_api
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 
 	"gvb-server/global"
 	"gvb-server/models"
@@ -29,7 +31,7 @@ import (
 // @Success 200 {object} res.Response{data=string} "登录成功，返回token"
 // @Failure 400 {object} res.Response "请求错误"
 // @Failure 500 {object} res.Response "登录失败"
-// @Router /api/qq_login [post]
+// @Router /api/qq_login [get]
 func (UserApi) QQLoginView(c *gin.Context) {
 	code := c.Query("code")
 	if code == "" {
@@ -47,16 +49,25 @@ func (UserApi) QQLoginView(c *gin.Context) {
 	log := log_stash.NewLogByGin(c)
 	err = global.DB.Take(&user, "token = ?", openID).Error
 	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			global.Log.Error(err)
+			res.FailWithMessage("数据库查询失败", c)
+			return
+		}
 		hashPwd := pwd.HashPwd(random.RandString(16))
 		nickName := strings.TrimSpace(qqInfo.Nickname)
 		if nickName == "" {
 			nickName = "QQ用户" + random.RandString(4)
 		}
+		avatar := strings.TrimSpace(qqInfo.Avatar)
+		if avatar == "" {
+			avatar = user_ser.RandomAvatar()
+		}
 		user = models.UserModel{
 			NickName:   nickName,
 			UserName:   user_ser.GenerateUniqueUserName("qq"),
 			Password:   hashPwd,
-			Avatar:     user_ser.RandomAvatar(),
+			Avatar:     avatar,
 			Addr:       addr,
 			Token:      openID,
 			IP:         ip,
@@ -83,7 +94,7 @@ func (UserApi) QQLoginView(c *gin.Context) {
 		return
 	}
 
-	global.DB.Create(models.LoginDataModel{
+	global.DB.Create(&models.LoginDataModel{
 		UserID:    user.ID,
 		IP:        ip,
 		NickName:  user.NickName,

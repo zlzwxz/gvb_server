@@ -1,94 +1,95 @@
-mysql:
-  host: mysql
-  port: 3306
-  user: root
-  password: ""
-  db: gvb_db
-  log_level: dev
-  config: charset=utf8mb4&parseTime=True&loc=Local
-  maxidleconns: 0
-  maxopenconns: 0
-  timeout: 5
-logger:
-  level: info
-  prefix: "[gvb]"
-  director: log
-  show_line: true
-  log_in_console: true
-system:
-  host: 0.0.0.0
-  port: 8080
-  env: release
-email:
-  host: smtp.qq.com
-  port: 465
-  user: example@qq.com
-  password: ""
-  default_from_email: gvb
-  use_ssl: true
-  user_tls: true
-jwt:
-  secret: change_me_min_16_chars
-  expires: 12
-  issuer: gvb-server
-site_info:
-  created_at: "2023-01-01"
-  bei_an: ""
-  title: GVB Blog
-  qq_image: ""
-  version: 6.0.2
-  email: example@qq.com
-  wechat_image: ""
-  name: GVB
-  job: Backend
-  addr: Earth
-  slogan: GVB
-  slogan_en: gvb
-  web: ""
-  bilibili_url: ""
-  gitee_url: ""
-  github_url: ""
-  profile: ""
-  contact: ""
-  service_url: ""
-  home_layout:
-    page_size: 6
-    hot_count: 5
-    level_count: 5
-    advert_count: 2
-    orders:
-      hot: 1
-      level: 2
-      profile: 3
-  auto_crawl_fengfeng_articles: false
-  crawler_user_name: system_crawler
-  crawler_nick_name: system
-qq:
-  app_id: ""
-  key: ""
-  redirect: ""
-qiniu:
-  enable: false
-  access_key: ""
-  secret_key: ""
-  bucket: ""
-  cdn: ""
-  zone: ""
-  prefix: ""
-  size: 0
-news:
-  enabled_source_names: []
-  enabled_source_ids: []
-upload:
-  path: uploads/file
-  max_size: 10
-redis:
-  ip: redis
-  port: 6379
-  password: ""
-  poolSize: 100
-es:
-  host: http://es
-  port: 9200
-  user: ""
-  password: ""
+  mysql:
+    host: mysql
+    port: 3306
+    user: root
+    password: zhangliang
+    db: gvb_db
+    log_level: dev
+    config: charset=utf8mb4&parseTime=True&loc=Local
+    maxidleconns: 0
+    maxopenconns: 0
+    timeout: 5
+  logger:
+    level: info
+    prefix: '[gvb]'
+    director: log
+    show_line: true
+    log_in_console: true
+  system:
+    host: 0.0.0.0
+    port: 8080
+    env: release
+  email:
+    host: smtp.qq.com
+    port: 465
+    user: 936832660@qq.com
+    password: coqwaxcvauhubbdf
+    default_from_email: zl博客
+    use_ssl: true
+    user_tls: true
+  jwt:
+    secret: please_change_this_jwt_secret_32_chars
+    expires: 10
+    issuer: gvb-server
+  site_info:
+    created_at: "2023-01-01"
+    bei_an: "蜀ICP备2026003674号-1"
+    title: Zl 的个人博客
+    qq_image: http://zlzwxz.cn/uploads/file/u_1/6744c6d3604d68084a8d5d2350dccb6e_20260321004409.jpg
+    version: 6.0.2
+    email: 936832660@qq.com
+    wechat_image: http://zlzwxz.cn/uploads/file/u_1/7f079892f77647c19e3c9e1eb595f260_20260321004415.jpg
+    name: 快乐博客
+    job: 后端开发
+    addr: 地球
+    slogan: 快乐博客
+    slogan_en: zlboke
+    web: ""
+    bilibili_url: https://space.bilibili.com/359151217
+    gitee_url: https://qitee.com/fengfengzhidao
+    github_url: https://qithub.com/fengfengzhidao/
+    profile: 这里是个人介绍栏，可填写你的经历、擅长方向和服务说明。
+    contact: 'QQ: 936832660 / 微信: zlzwxz'
+    service_url: ""
+    home_layout:
+      page_size: 4
+      hot_count: 3
+      level_count: 3
+      advert_count: 2
+      orders:
+        hot: 1
+        level: 2
+        profile: 3
+    friend_links: []
+    auto_crawl_fengfeng_articles: false
+    crawler_user_name: system_crawler
+    crawler_nick_name: 系统员
+  qq:
+    app_id: "102823569"
+    key: ay71g6HDvOekfNRM
+    redirect: http://zlzwxz.cn/login
+  qiniu:
+    enable: false
+    access_key: "111"
+    secret_key: "222222"
+    bucket: "111111"
+    cdn: "111"
+    zone: "222"
+    prefix: "333"
+    size: 0
+  news:
+    enabled_source_names: []
+    enabled_source_ids: []
+  upload:
+    path: uploads/file
+    max_size: 10
+  redis:
+    ip: redis
+    port: 6379
+    password: ""
+    poolSize: 100
+  es:
+    host: http://es
+    port: 9200
+    user: ""
+    password: ""

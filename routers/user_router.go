@@ -40,7 +40,7 @@ func (router RouterGroup) UserRouter() {
 	router.POST("/user_bind_email", middleware.JwtAuth(), app.UserBindEmailView)
 	router.POST("/user_register_email_code", app.UserRegisterEmailCodeView)
 	router.POST("/user_create", app.UserCreateView)
-	router.POST("/qq_login", app.QQLoginView)
+	router.GET("/qq_login", app.QQLoginView)
 	router.GET("/user_info", middleware.JwtAuth(), app.UserInfoView)
 	router.PUT("/user_update_nick_name", middleware.JwtAuth(), app.UserUpdateNickName)
 	router.POST("/user_check_in", middleware.JwtAuth(), app.UserCheckInView)

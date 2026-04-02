@@ -33,12 +33,12 @@ jwt:
   issuer: gvb-server
 site_info:
   created_at: "2023-01-01"
-  bei_an: ""
+  bei_an: 蜀ICP备2026003674号-1
   title: Zl 的个人博客
-  qq_image: qq_image:http://www.fengfengzhidao.com/static/my/img/footer/qq.png
+  qq_image: http://zlzwxz.cn/uploads/file/u_1/6744c6d3604d68084a8d5d2350dccb6e_20260321004409.jpg
   version: 6.0.2
   email: 936832660@qq.com
-  wechat_image: wechat_image:http://www.fengfengzhidao.com/static/my/img/footer/wechat.png
+  wechat_image: http://zlzwxz.cn/uploads/file/u_1/6744c6d3604d68084a8d5d2350dccb6e_20260321004409.jpg
   name: 快乐博客
   job: 后端开发
   addr: 地球
@@ -49,24 +49,25 @@ site_info:
   gitee_url: https://qitee.com/fengfengzhidao
   github_url: https://qithub.com/fengfengzhidao/
   profile: 这里是个人介绍栏，可填写你的经历、擅长方向和服务说明。
-  contact: 'QQ: 936832660 / 微信: meiling_blog / 电话: 13800000000'
+  contact: 'QQ: 936832660 / 微信: zlzwxz'
   service_url: ""
   home_layout:
-    page_size: 6
-    hot_count: 5
-    level_count: 5
+    page_size: 4
+    hot_count: 3
+    level_count: 3
     advert_count: 2
     orders:
       hot: 1
       level: 2
       profile: 3
+  friend_links: []
   auto_crawl_fengfeng_articles: false
   crawler_user_name: system_crawler
   crawler_nick_name: 系统员
 qq:
   app_id: "102823569"
-  key: key
-  redirect: ay71g6HDvOekfNRM
+  key: ay71g6HDvOekfNRM
+  redirect: http://zlzwxz.cn/login
 qiniu:
   enable: false
   access_key: "111"

@@ -9,7 +9,10 @@ import (
 )
 
 func CronInit() {
-	timezone, _ := time.LoadLocation("Asia/Shanghai")
+	timezone, err := time.LoadLocation("Asia/Shanghai")
+	if err != nil || timezone == nil {
+		timezone = time.FixedZone("CST", 8*3600)
+	}
 	// 创建一个支持秒级精度的cron调度器
 	Cron := cron.New(cron.WithSeconds(), cron.WithLocation(timezone))
 	// 每秒钟执行一次文章数据同步
